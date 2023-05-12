@@ -36,6 +36,4 @@ def build_padding_layer(cfg: Dict, *args, **kwargs) -> nn.Module:
     if padding_layer is None:
         raise KeyError(f'Cannot find {padding_layer} in registry under scope '
                        f'name {registry.scope}')
-    layer = padding_layer(*args, **kwargs, **cfg_)
-
-    return layer
+    return padding_layer(*args, **kwargs, **cfg_)

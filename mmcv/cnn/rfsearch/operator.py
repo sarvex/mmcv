@@ -34,8 +34,7 @@ class BaseConvRFSearchOp(BaseModule):
             nn.Parameters: Normalized weights.
         """
         abs_weights = torch.abs(weights)
-        normalized_weights = abs_weights / torch.sum(abs_weights)
-        return normalized_weights
+        return abs_weights / torch.sum(abs_weights)
 
 
 class Conv2dRFSearchOp(BaseConvRFSearchOp):
@@ -121,9 +120,9 @@ class Conv2dRFSearchOp(BaseConvRFSearchOp):
         norm_w = self.normlize(self.branch_weights[:len(self.dilation_rates)])
         if self.verbose:
             print_log(
-                'Estimate dilation {} with weight {}.'.format(
-                    self.dilation_rates,
-                    norm_w.detach().cpu().numpy().tolist()), 'current')
+                f'Estimate dilation {self.dilation_rates} with weight {norm_w.detach().cpu().numpy().tolist()}.',
+                'current',
+            )
 
         sum0, sum1, w_sum = 0, 0, 0
         for i in range(len(self.dilation_rates)):
@@ -162,8 +161,8 @@ class Conv2dRFSearchOp(BaseConvRFSearchOp):
                           self.global_config['init_alphas'])
 
     def get_padding(self, dilation) -> tuple:
-        padding = (get_single_padding(self.op_layer.kernel_size[0],
-                                      self.op_layer.stride[0], dilation[0]),
-                   get_single_padding(self.op_layer.kernel_size[1],
-                                      self.op_layer.stride[1], dilation[1]))
-        return padding
+        return get_single_padding(
+            self.op_layer.kernel_size[0], self.op_layer.stride[0], dilation[0]
+        ), get_single_padding(
+            self.op_layer.kernel_size[1], self.op_layer.stride[1], dilation[1]
+        )

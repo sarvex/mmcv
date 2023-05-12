@@ -11,7 +11,7 @@ def _bbox_overlaps_cpu(bboxes1: torch.Tensor,
                        mode: str = 'iou',
                        aligned: bool = False,
                        offset: int = 0) -> torch.Tensor:
-    assert mode in ['iou', 'iof']
+    assert mode in {'iou', 'iof'}
 
     if aligned:
         lt = torch.max(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
@@ -97,12 +97,12 @@ def bbox_overlaps(bboxes1: torch.Tensor,
     """
 
     mode_dict = {'iou': 0, 'iof': 1}
-    assert mode in mode_dict.keys()
+    assert mode in mode_dict
     mode_flag = mode_dict[mode]
     # Either the boxes are empty or the length of boxes' last dimension is 4
     assert (bboxes1.size(-1) == 4 or bboxes1.size(0) == 0)
     assert (bboxes2.size(-1) == 4 or bboxes2.size(0) == 0)
-    assert offset == 1 or offset == 0
+    assert offset in {1, 0}
 
     rows = bboxes1.size(0)
     cols = bboxes2.size(0)

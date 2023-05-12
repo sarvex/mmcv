@@ -11,17 +11,14 @@ def _corner_pool(x: Tensor, dim: int, flip: bool) -> Tensor:
 
     ind = 1
     while ind < size:
+        cur_len = size - ind
         if flip:
             cur_start = 0
-            cur_len = size - ind
             next_start = ind
-            next_len = size - ind
         else:
             cur_start = ind
-            cur_len = size - ind
             next_start = 0
-            next_len = size - ind
-
+        next_len = size - ind
         # max_temp should be cloned for backward computation
         max_temp = output.narrow(dim, cur_start, cur_len).clone()
         cur_temp = output.narrow(dim, cur_start, cur_len)
@@ -29,7 +26,7 @@ def _corner_pool(x: Tensor, dim: int, flip: bool) -> Tensor:
 
         cur_temp[...] = torch.where(max_temp > next_temp, max_temp, next_temp)
 
-        ind = ind << 1
+        ind <<= 1
 
     return output
 
@@ -70,14 +67,12 @@ class CornerPool(nn.Module):
         self.mode = mode
 
     def forward(self, x: Tensor) -> Tensor:
-        if torch.__version__ != 'parrots' and torch.__version__ >= '1.5.0':
-            dim, flip = self.cummax_dim_flip[self.mode]
-            if flip:
-                x = x.flip(dim)
-            pool_tensor, _ = torch.cummax(x, dim=dim)
-            if flip:
-                pool_tensor = pool_tensor.flip(dim)
-            return pool_tensor
-        else:
-            dim, flip = self.cummax_dim_flip[self.mode]
+        dim, flip = self.cummax_dim_flip[self.mode]
+        if torch.__version__ == 'parrots' or torch.__version__ < '1.5.0':
             return _corner_pool(x, dim, flip)
+        if flip:
+            x = x.flip(dim)
+        pool_tensor, _ = torch.cummax(x, dim=dim)
+        if flip:
+            pool_tensor = pool_tensor.flip(dim)
+        return pool_tensor

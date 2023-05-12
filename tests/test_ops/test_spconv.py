@@ -43,7 +43,7 @@ def make_sparse_convmodule(in_channels,
 
     conv_cfg = dict(type=conv_type, indice_key=indice_key)
 
-    layers = list()
+    layers = []
     for layer in order:
         if layer == 'conv':
             if conv_type not in [
@@ -72,8 +72,7 @@ def make_sparse_convmodule(in_channels,
         elif layer == 'act':
             layers.append(nn.ReLU(inplace=True))
 
-    layers = SparseSequential(*layers)
-    return layers
+    return SparseSequential(*layers)
 
 
 @pytest.mark.skipif(

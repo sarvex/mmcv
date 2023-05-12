@@ -320,11 +320,7 @@ class PatchMerging(BaseModule):
         super().__init__(init_cfg=init_cfg)
         self.in_channels = in_channels
         self.out_channels = out_channels
-        if stride:
-            stride = stride
-        else:
-            stride = kernel_size
-
+        stride = stride if stride else kernel_size
         kernel_size = to_2tuple(kernel_size)
         stride = to_2tuple(stride)
         dilation = to_2tuple(dilation)
@@ -515,14 +511,13 @@ class MultiheadAttention(BaseModule):
             value = key
         if identity is None:
             identity = query
-        if key_pos is None:
-            if query_pos is not None:
-                # use query_pos if key_pos is not available
-                if query_pos.shape == key.shape:
-                    key_pos = query_pos
-                else:
-                    warnings.warn(f'position encoding of key is'
-                                  f'missing in {self.__class__.__name__}.')
+        if key_pos is None and query_pos is not None:
+            # use query_pos if key_pos is not available
+            if query_pos.shape == key.shape:
+                key_pos = query_pos
+            else:
+                warnings.warn(f'position encoding of key is'
+                              f'missing in {self.__class__.__name__}.')
         if query_pos is not None:
             query = query + query_pos
         if key_pos is not None:
@@ -595,7 +590,7 @@ class FFN(BaseModule):
                  layer_scale_init_value=0.):
         super().__init__(init_cfg)
         assert num_fcs >= 2, 'num_fcs should be no less ' \
-            f'than 2. got {num_fcs}.'
+                f'than 2. got {num_fcs}.'
         self.embed_dims = embed_dims
         self.feedforward_channels = feedforward_channels
         self.num_fcs = num_fcs
@@ -608,8 +603,7 @@ class FFN(BaseModule):
                     Linear(in_channels, feedforward_channels),
                     build_activation_layer(act_cfg), nn.Dropout(ffn_drop)))
             in_channels = feedforward_channels
-        layers.append(Linear(feedforward_channels, embed_dims))
-        layers.append(nn.Dropout(ffn_drop))
+        layers.extend((Linear(feedforward_channels, embed_dims), nn.Dropout(ffn_drop)))
         self.layers = Sequential(*layers)
         self.dropout_layer = build_dropout(
             dropout_layer) if dropout_layer else torch.nn.Identity()

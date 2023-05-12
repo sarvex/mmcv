@@ -71,10 +71,7 @@ def imshow_bboxes(img: Union[str, np.ndarray],
 
     for i, _bboxes in enumerate(bboxes):
         _bboxes = _bboxes.astype(np.int32)
-        if top_k <= 0:
-            _top_k = _bboxes.shape[0]
-        else:
-            _top_k = min(top_k, _bboxes.shape[0])
+        _top_k = _bboxes.shape[0] if top_k <= 0 else min(top_k, _bboxes.shape[0])
         for j in range(_top_k):
             left_top = (_bboxes[j, 0], _bboxes[j, 1])
             right_bottom = (_bboxes[j, 2], _bboxes[j, 3])
@@ -127,7 +124,7 @@ def imshow_det_bboxes(img: Union[str, np.ndarray],
     assert bboxes.ndim == 2
     assert labels.ndim == 1
     assert bboxes.shape[0] == labels.shape[0]
-    assert bboxes.shape[1] == 4 or bboxes.shape[1] == 5
+    assert bboxes.shape[1] in [4, 5]
     img = imread(img)
     img = np.ascontiguousarray(img)
 

@@ -5,7 +5,7 @@ if torch.__version__ == 'parrots':
     import parrots
 
     def get_compiler_version():
-        return 'GCC ' + parrots.version.compiler
+        return f'GCC {parrots.version.compiler}'
 
     def get_compiling_cuda_version():
         return parrots.version.cuda

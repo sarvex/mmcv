@@ -237,11 +237,11 @@ def _bias_act_ref(input: torch.Tensor,
             [-1 if i == dim else 1 for i in range(input.ndim)])
 
     # Evaluate activation function.
-    alpha = float(alpha)
+    alpha = alpha
     output = spec.func(input, alpha=alpha)
 
     # Scale by gain.
-    gain = float(gain)
+    gain = gain
     if gain != 1:
         output = output * gain
 
@@ -252,7 +252,7 @@ def _bias_act_ref(input: torch.Tensor,
     return output
 
 
-_bias_act_cuda_cache: Dict = dict()
+_bias_act_cuda_cache: Dict = {}
 
 
 def _bias_act_cuda(dim: int = 1,

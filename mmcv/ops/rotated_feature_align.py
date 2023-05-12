@@ -51,7 +51,7 @@ class RotatedFeatureAlignFunction(Function):
         ctx.spatial_scale = spatial_scale
         ctx.points = points
         ctx.save_for_backward(best_rbboxes)
-        assert points in [1, 5]
+        assert points in {1, 5}
         output = torch.zeros_like(features)
         ext_module.rotated_feature_align_forward(
             features,

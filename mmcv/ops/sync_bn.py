@@ -211,8 +211,10 @@ class SyncBatchNorm(Module):
         group = dist.group.WORLD if group is None else group
         self.group = group
         self.group_size = dist.get_world_size(group)
-        assert stats_mode in ['default', 'N'], \
-            f'"stats_mode" only accepts "default" and "N", got "{stats_mode}"'
+        assert stats_mode in {
+            'default',
+            'N',
+        }, f'"stats_mode" only accepts "default" and "N", got "{stats_mode}"'
         self.stats_mode = stats_mode
         if self.affine:
             self.weight = Parameter(torch.Tensor(num_features))
@@ -247,19 +249,18 @@ class SyncBatchNorm(Module):
         if input.dim() < 2:
             raise ValueError(
                 f'expected at least 2D input, got {input.dim()}D input')
-        if self.momentum is None:
-            exponential_average_factor = 0.0
-        else:
-            exponential_average_factor = self.momentum
-
-        if self.training and self.track_running_stats:
-            if self.num_batches_tracked is not None:
-                self.num_batches_tracked += 1
-                if self.momentum is None:  # use cumulative moving average
-                    exponential_average_factor = 1.0 / float(
-                        self.num_batches_tracked)
-                else:  # use exponential moving average
-                    exponential_average_factor = self.momentum
+        exponential_average_factor = 0.0 if self.momentum is None else self.momentum
+        if (
+            self.training
+            and self.track_running_stats
+            and self.num_batches_tracked is not None
+        ):
+            self.num_batches_tracked += 1
+            if self.momentum is None:  # use cumulative moving average
+                exponential_average_factor = 1.0 / float(
+                    self.num_batches_tracked)
+            else:  # use exponential moving average
+                exponential_average_factor = self.momentum
 
         if self.training or not self.track_running_stats:
             return SyncBatchNormFunction.apply(

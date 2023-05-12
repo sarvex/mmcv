@@ -39,7 +39,7 @@ def test_roialign():
     rt = pytest.importorskip('onnxruntime')
     try:
         from mmcv.ops import roi_align
-    except (ImportError, ModuleNotFoundError):
+    except ImportError:
         pytest.skip('roi_align op is not successfully compiled')
 
     # roi align config
@@ -176,10 +176,7 @@ def _test_symbolic(model, inputs, symbol_name):
     model = onnx.load(onnx_file)
     nodes = model.graph.node
 
-    symbol_exist = False
-    for n in nodes:
-        if n.op_type == symbol_name:
-            symbol_exist = True
+    symbol_exist = any(n.op_type == symbol_name for n in nodes)
     assert symbol_exist
 
 

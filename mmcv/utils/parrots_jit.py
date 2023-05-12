@@ -23,10 +23,7 @@ else:
 
             return wrapper_inner
 
-        if func is None:
-            return wrapper
-        else:
-            return func
+        return wrapper if func is None else func
 
 
 if TORCH_VERSION == 'parrots':

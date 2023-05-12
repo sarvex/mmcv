@@ -269,8 +269,7 @@ def diff_iou_rotated_2d(box1: Tensor, box2: Tensor) -> Tensor:
     area1 = box1[:, :, 2] * box1[:, :, 3]
     area2 = box2[:, :, 2] * box2[:, :, 3]
     union = area1 + area2 - intersection
-    iou = intersection / union
-    return iou
+    return intersection / union
 
 
 def diff_iou_rotated_3d(box3d1: Tensor, box3d2: Tensor) -> Tensor:

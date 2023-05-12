@@ -96,9 +96,7 @@ def _should_use_custom_op(input):
     assert isinstance(input, torch.Tensor)
     if (not enabled) or (not torch.backends.cudnn.enabled):
         return False
-    if input.device.type != 'cuda':
-        return False
-    return True
+    return input.device.type == 'cuda'
 
 
 def _to_tuple(x, ndim):
@@ -108,7 +106,7 @@ def _to_tuple(x, ndim):
     return xs
 
 
-_conv2d_gradfix_cache: Dict = dict()
+_conv2d_gradfix_cache: Dict = {}
 _null_tensor = torch.empty([0])
 
 

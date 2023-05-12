@@ -50,7 +50,7 @@ def flowread(flow_or_path: Union[np.ndarray, str],
             h = np.fromfile(f, np.int32, 1).squeeze()
             flow = np.fromfile(f, np.float32, w * h * 2).reshape((h, w, 2))
     else:
-        assert concat_axis in [0, 1]
+        assert concat_axis in {0, 1}
         cat_flow = imread(flow_or_path, flag='unchanged')
         if cat_flow.ndim != 2:
             raise OSError(
@@ -92,7 +92,7 @@ def flowwrite(flow: np.ndarray,
             flow.tofile(f)
             f.flush()
     else:
-        assert concat_axis in [0, 1]
+        assert concat_axis in {0, 1}
         dx, dy = quantize_flow(flow, *args, **kwargs)
         dxdy = np.concatenate((dx, dy), axis=concat_axis)
         imwrite(dxdy, filename)
@@ -151,8 +151,7 @@ def dequantize_flow(dx: np.ndarray,
     if denorm:
         dx *= dx.shape[1]
         dy *= dx.shape[0]
-    flow = np.dstack((dx, dy))
-    return flow
+    return np.dstack((dx, dy))
 
 
 def flow_warp(img: np.ndarray,
@@ -242,11 +241,9 @@ def flow_from_bytes(content: bytes) -> np.ndarray:
     width = np.frombuffer(content[4:], np.int32, 1).squeeze()
     # height in third 4 bytes
     height = np.frombuffer(content[8:], np.int32, 1).squeeze()
-    # after first 12 bytes, all bytes are flow
-    flow = np.frombuffer(content[12:], np.float32, width * height * 2).reshape(
-        (height, width, 2))
-
-    return flow
+    return np.frombuffer(content[12:], np.float32, width * height * 2).reshape(
+        (height, width, 2)
+    )
 
 
 def sparse_flow_from_bytes(content: bytes) -> Tuple[np.ndarray, np.ndarray]:

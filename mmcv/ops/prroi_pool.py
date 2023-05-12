@@ -40,7 +40,7 @@ class PrRoIPoolFunction(Function):
 
         pooled_height = int(output_size[0])
         pooled_width = int(output_size[1])
-        spatial_scale = float(spatial_scale)
+        spatial_scale = spatial_scale
 
         features = features.contiguous()
         rois = rois.contiguous()
@@ -129,7 +129,7 @@ class PrRoIPool(nn.Module):
         super().__init__()
 
         self.output_size = _pair(output_size)
-        self.spatial_scale = float(spatial_scale)
+        self.spatial_scale = spatial_scale
 
     def forward(self, features: torch.Tensor,
                 rois: torch.Tensor) -> torch.Tensor:

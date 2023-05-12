@@ -31,15 +31,12 @@ def box_iou_quadri(bboxes1: torch.Tensor,
         torch.Tensor: Return the ious betweens boxes. If ``aligned`` is
         ``False``, the shape of ious is (N, M) else (N,).
     """
-    assert mode in ['iou', 'iof']
+    assert mode in {'iou', 'iof'}
     mode_dict = {'iou': 0, 'iof': 1}
     mode_flag = mode_dict[mode]
     rows = bboxes1.size(0)
     cols = bboxes2.size(0)
-    if aligned:
-        ious = bboxes1.new_zeros(rows)
-    else:
-        ious = bboxes1.new_zeros(rows * cols)
+    ious = bboxes1.new_zeros(rows) if aligned else bboxes1.new_zeros(rows * cols)
     bboxes1 = bboxes1.contiguous()
     bboxes2 = bboxes2.contiguous()
     ext_module.box_iou_quadri(

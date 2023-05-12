@@ -61,21 +61,19 @@ class TestLoadImageFromFile:
 
 class TestLoadAnnotations:
 
-    def setup_class(cls):
+    def setup_class(self):
         data_prefix = osp.join(osp.dirname(__file__), '../data')
         seg_map = osp.join(data_prefix, 'grayscale.jpg')
-        cls.results = {
-            'seg_map_path':
-            seg_map,
-            'instances': [{
-                'bbox': [0, 0, 10, 20],
-                'bbox_label': 1,
-                'keypoints': [1, 2, 3]
-            }, {
-                'bbox': [10, 10, 110, 120],
-                'bbox_label': 2,
-                'keypoints': [4, 5, 6]
-            }]
+        self.results = {
+            'seg_map_path': seg_map,
+            'instances': [
+                {'bbox': [0, 0, 10, 20], 'bbox_label': 1, 'keypoints': [1, 2, 3]},
+                {
+                    'bbox': [10, 10, 110, 120],
+                    'bbox_label': 2,
+                    'keypoints': [4, 5, 6],
+                },
+            ],
         }
 
     def test_init(self):

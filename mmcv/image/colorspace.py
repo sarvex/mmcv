@@ -17,8 +17,7 @@ def imconvert(img: np.ndarray, src: str, dst: str) -> np.ndarray:
         ndarray: The converted image.
     """
     code = getattr(cv2, f'COLOR_{src.upper()}2{dst.upper()}')
-    out_img = cv2.cvtColor(img, code)
-    return out_img
+    return cv2.cvtColor(img, code)
 
 
 def bgr2gray(img: np.ndarray, keepdim: bool = False) -> np.ndarray:
@@ -65,8 +64,7 @@ def gray2bgr(img: np.ndarray) -> np.ndarray:
         ndarray: The converted BGR image.
     """
     img = img[..., None] if img.ndim == 2 else img
-    out_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    return out_img
+    return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
 
 def gray2rgb(img: np.ndarray) -> np.ndarray:
@@ -79,8 +77,7 @@ def gray2rgb(img: np.ndarray) -> np.ndarray:
         ndarray: The converted RGB image.
     """
     img = img[..., None] if img.ndim == 2 else img
-    out_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    return out_img
+    return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
 
 def _convert_input_type_range(img: np.ndarray) -> np.ndarray:

@@ -177,9 +177,7 @@ def get_shape_from_feature_map(x: Tensor) -> Tensor:
     Returns:
         torch.Tensor: Spatial resolution (width, height), shape (1, 1, 2)
     """
-    img_shape = torch.tensor(x.shape[2:]).flip(0).view(1, 1,
-                                                       2).to(x.device).float()
-    return img_shape
+    return torch.tensor(x.shape[2:]).flip(0).view(1, 1, 2).to(x.device).float()
 
 
 def abs_img_point_to_rel_img_point(abs_img_points: Tensor,
@@ -236,10 +234,7 @@ def rel_roi_point_to_rel_img_point(rois: Tensor,
     """
 
     abs_img_point = rel_roi_point_to_abs_img_point(rois, rel_roi_points)
-    rel_img_point = abs_img_point_to_rel_img_point(abs_img_point, img,
-                                                   spatial_scale)
-
-    return rel_img_point
+    return abs_img_point_to_rel_img_point(abs_img_point, img, spatial_scale)
 
 
 def point_sample(input: Tensor,
@@ -292,7 +287,7 @@ class SimpleRoIAlign(nn.Module):
 
         super().__init__()
         self.output_size = _pair(output_size)
-        self.spatial_scale = float(spatial_scale)
+        self.spatial_scale = spatial_scale
         # to be consistent with other RoI ops
         self.use_torchvision = False
         self.aligned = aligned
@@ -320,13 +315,11 @@ class SimpleRoIAlign(nn.Module):
         point_feats_t = torch.cat(point_feats, dim=0)
 
         channels = features.size(1)
-        roi_feats = point_feats_t.reshape(num_rois, channels,
-                                          *self.output_size)
-
-        return roi_feats
+        return point_feats_t.reshape(num_rois, channels, *self.output_size)
 
     def __repr__(self) -> str:
         format_str = self.__class__.__name__
-        format_str += '(output_size={}, spatial_scale={}'.format(
-            self.output_size, self.spatial_scale)
+        format_str += (
+            f'(output_size={self.output_size}, spatial_scale={self.spatial_scale}'
+        )
         return format_str

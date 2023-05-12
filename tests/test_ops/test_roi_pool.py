@@ -51,10 +51,7 @@ class TestRoiPool:
 
             froipool = RoIPool((pool_h, pool_w), spatial_scale)
 
-            if _USING_PARROTS:
-                pass
-                # gradcheck(froipool, (x, rois), no_grads=[rois])
-            else:
+            if not _USING_PARROTS:
                 gradcheck(froipool, (x, rois), eps=1e-2, atol=1e-2)
 
     def _test_roipool_allclose(self, device, dtype=torch.float):

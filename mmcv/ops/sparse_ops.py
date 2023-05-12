@@ -77,16 +77,15 @@ def get_indice_pairs(indices,
     for d, s in zip(dilation, stride):
         assert any([s == 1, d == 1]), "don't support this."
 
-    if not subm:
-        if transpose:
-            out_shape = get_deconv_output_size(spatial_shape, ksize, stride,
-                                               padding, dilation, out_padding)
-        else:
-            out_shape = get_conv_output_size(spatial_shape, ksize, stride,
-                                             padding, dilation)
-
-    else:
+    if subm:
         out_shape = spatial_shape
+    elif transpose:
+        out_shape = get_deconv_output_size(spatial_shape, ksize, stride,
+                                           padding, dilation, out_padding)
+    else:
+        out_shape = get_conv_output_size(spatial_shape, ksize, stride,
+                                         padding, dilation)
+
     if grid is None:
         if ndim == 2:
             get_indice_pairs_func = ext_module.get_indice_pairs_2d_forward
@@ -120,7 +119,7 @@ def indice_conv(features,
                 num_activate_out,
                 inverse=False,
                 subm=False):
-    if filters.dtype == torch.float32 or filters.dtype == torch.half:
+    if filters.dtype in [torch.float32, torch.half]:
         return ext_module.indice_conv_forward(features, filters, indice_pairs,
                                               indice_pair_num,
                                               num_activate_out, int(inverse),
@@ -147,7 +146,7 @@ def indice_conv_backward(features,
                          indice_pair_num,
                          inverse=False,
                          subm=False):
-    if filters.dtype == torch.float32 or filters.dtype == torch.half:
+    if filters.dtype in [torch.float32, torch.half]:
         return ext_module.indice_conv_backward(features, filters, out_bp,
                                                indice_pairs, indice_pair_num,
                                                int(inverse), int(subm))
@@ -156,7 +155,7 @@ def indice_conv_backward(features,
 
 
 def indice_maxpool(features, indice_pairs, indice_pair_num, num_activate_out):
-    if features.dtype == torch.float32 or features.dtype == torch.half:
+    if features.dtype in [torch.float32, torch.half]:
         return ext_module.indice_maxpool_forward(features, indice_pairs,
                                                  indice_pair_num,
                                                  num_activate_out)
@@ -166,7 +165,7 @@ def indice_maxpool(features, indice_pairs, indice_pair_num, num_activate_out):
 
 def indice_maxpool_backward(features, out_features, out_bp, indice_pairs,
                             indice_pair_num):
-    if features.dtype == torch.float32 or features.dtype == torch.half:
+    if features.dtype in [torch.float32, torch.half]:
         return ext_module.indice_maxpool_backward(features, out_features,
                                                   out_bp, indice_pairs,
                                                   indice_pair_num)

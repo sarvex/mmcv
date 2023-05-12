@@ -86,5 +86,4 @@ def build_upsample_layer(cfg: Dict, *args, **kwargs) -> nn.Module:
                        f'name {registry.scope}')
     if upsample is nn.Upsample:
         cfg_['mode'] = layer_type
-    layer = upsample(*args, **kwargs, **cfg_)
-    return layer
+    return upsample(*args, **kwargs, **cfg_)

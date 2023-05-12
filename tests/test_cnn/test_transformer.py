@@ -224,12 +224,12 @@ def test_patch_embed():
     # the out_size should be equal to `init_out_size`
     assert shape == patch_merge_3.init_out_size
 
+    in_c = 2
+    embed_dims = 3
+    B = 2
+
     # test adap padding
     for padding in ('same', 'corner'):
-        in_c = 2
-        embed_dims = 3
-        B = 2
-
         # test stride is 1
         input_size = (5, 5)
         kernel_size = (5, 5)
@@ -370,12 +370,12 @@ def test_patch_merging():
     # assert out size is consistent with real output
     assert x_out.size(1) == out_size[0] * out_size[1]
 
+    in_c = 2
+    out_c = 3
+    B = 2
+
     # Test with adaptive padding
     for padding in ('same', 'corner'):
-        in_c = 2
-        out_c = 3
-        B = 2
-
         # test stride is 1
         input_size = (5, 5)
         kernel_size = (5, 5)

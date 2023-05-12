@@ -81,7 +81,7 @@ class DeformConv2dFunction(Function):
             raise ValueError(
                 f'Expected 4D tensor as input, got {input.dim()}D tensor \
                   instead.')
-        assert bias is False, 'Only support bias is False.'
+        assert not bias, 'Only support bias is False.'
         ctx.stride = _pair(stride)
         ctx.padding = _pair(padding)
         ctx.dilation = _pair(dilation)
@@ -103,9 +103,9 @@ class DeformConv2dFunction(Function):
             mask_shape, _ = torch.chunk(offset, 2, dim=1)
             mask = torch.ones_like(mask_shape).to(input.device)
             bias = input.new_empty(0)
-            output = ModulatedDeformConv2dFunction._npu_forward(
-                ctx, input, offset, mask, weight, bias)
-            return output
+            return ModulatedDeformConv2dFunction._npu_forward(
+                ctx, input, offset, mask, weight, bias
+            )
         ctx.save_for_backward(input, offset, weight)
 
         output = input.new_empty([
@@ -418,12 +418,17 @@ class DeformConv2dPack(DeformConv2d):
         if version is None or version < 2:
             # the key is different in early versions
             # In version < 2, DeformConvPack loads previous benchmark models.
-            if (prefix + 'conv_offset.weight' not in state_dict
-                    and prefix[:-1] + '_offset.weight' in state_dict):
-                state_dict[prefix + 'conv_offset.weight'] = state_dict.pop(
-                    prefix[:-1] + '_offset.weight')
-            if (prefix + 'conv_offset.bias' not in state_dict
-                    and prefix[:-1] + '_offset.bias' in state_dict):
+            if (
+                f'{prefix}conv_offset.weight' not in state_dict
+                and f'{prefix[:-1]}_offset.weight' in state_dict
+            ):
+                state_dict[f'{prefix}conv_offset.weight'] = state_dict.pop(
+                    f'{prefix[:-1]}_offset.weight'
+                )
+            if (
+                f'{prefix}conv_offset.bias' not in state_dict
+                and f'{prefix[:-1]}_offset.bias' in state_dict
+            ):
                 state_dict[prefix +
                            'conv_offset.bias'] = state_dict.pop(prefix[:-1] +
                                                                 '_offset.bias')

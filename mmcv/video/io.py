@@ -34,8 +34,7 @@ class Cache:
         self._cache[key] = val
 
     def get(self, key, default=None):
-        val = self._cache[key] if key in self._cache else default
-        return val
+        return self._cache[key] if key in self._cache else default
 
 
 class VideoReader:
@@ -62,7 +61,7 @@ class VideoReader:
     def __init__(self, filename, cache_capacity=10):
         # Check whether the video path is a url
         if not filename.startswith(('https://', 'http://')):
-            check_file_exist(filename, 'Video file not found: ' + filename)
+            check_file_exist(filename, f'Video file not found: {filename}')
         self._vcap = cv2.VideoCapture(filename)
         assert cache_capacity > 0
         self._cache = Cache(cache_capacity)
@@ -189,9 +188,7 @@ class VideoReader:
             ndarray or None: If the video is fresh, return None, otherwise
             return the frame.
         """
-        if self._position == 0:
-            return None
-        return self._cache.get(self._position - 1)
+        return None if self._position == 0 else self._cache.get(self._position - 1)
 
     def cvt2frames(self,
                    frame_dir,
@@ -247,8 +244,8 @@ class VideoReader:
         # support negative indexing
         if index < 0:
             index += self.frame_cnt
-            if index < 0:
-                raise IndexError('index out of range')
+        if index < 0:
+            raise IndexError('index out of range')
         return self.get_frame(index)
 
     def __iter__(self):
@@ -294,9 +291,9 @@ def frames2video(frame_dir: str,
     """
     if end == 0:
         ext = filename_tmpl.split('.')[-1]
-        end = len([name for name in scandir(frame_dir, ext)])
+        end = len(list(scandir(frame_dir, ext)))
     first_file = osp.join(frame_dir, filename_tmpl.format(start))
-    check_file_exist(first_file, 'The start frame not found: ' + first_file)
+    check_file_exist(first_file, f'The start frame not found: {first_file}')
     img = cv2.imread(first_file)
     height, width = img.shape[:2]
     resolution = (width, height)

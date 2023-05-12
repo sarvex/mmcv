@@ -125,15 +125,12 @@ def box_iou_rotated(bboxes1: torch.Tensor,
         torch.Tensor: Return the ious betweens boxes. If ``aligned`` is
         ``False``, the shape of ious is (N, M) else (N,).
     """
-    assert mode in ['iou', 'iof']
+    assert mode in {'iou', 'iof'}
     mode_dict = {'iou': 0, 'iof': 1}
     mode_flag = mode_dict[mode]
     rows = bboxes1.size(0)
     cols = bboxes2.size(0)
-    if aligned:
-        ious = bboxes1.new_zeros(rows)
-    else:
-        ious = bboxes1.new_zeros(rows * cols)
+    ious = bboxes1.new_zeros(rows) if aligned else bboxes1.new_zeros(rows * cols)
     if not clockwise:
         flip_mat = bboxes1.new_ones(bboxes1.shape[-1])
         flip_mat[-1] = -1

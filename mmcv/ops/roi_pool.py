@@ -84,7 +84,7 @@ class RoIPool(nn.Module):
         super().__init__()
 
         self.output_size = _pair(output_size)
-        self.spatial_scale = float(spatial_scale)
+        self.spatial_scale = spatial_scale
 
     def forward(self, input: torch.Tensor, rois: torch.Tensor) -> torch.Tensor:
         return roi_pool(input, rois, self.output_size, self.spatial_scale)

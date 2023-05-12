@@ -85,7 +85,7 @@ def get_model_complexity_info(model: nn.Module,
         return those in a float number format.
     """
     assert type(input_shape) is tuple
-    assert len(input_shape) >= 1
+    assert input_shape
     assert isinstance(model, nn.Module)
     flops_model = add_flops_counting_methods(model)
     flops_model.eval()
@@ -145,22 +145,21 @@ def flops_to_string(flops: float,
     """
     if units is None:
         if flops // 10**9 > 0:
-            return str(round(flops / 10.**9, precision)) + ' GFLOPs'
+            return f'{str(round(flops / 10.0**9, precision))} GFLOPs'
         elif flops // 10**6 > 0:
-            return str(round(flops / 10.**6, precision)) + ' MFLOPs'
+            return f'{str(round(flops / 10.0**6, precision))} MFLOPs'
         elif flops // 10**3 > 0:
-            return str(round(flops / 10.**3, precision)) + ' KFLOPs'
+            return f'{str(round(flops / 10.0**3, precision))} KFLOPs'
         else:
-            return str(flops) + ' FLOPs'
+            return f'{flops} FLOPs'
+    elif units == 'GFLOPs':
+        return f'{str(round(flops / 10.0**9, precision))} {units}'
+    elif units == 'KFLOPs':
+        return f'{str(round(flops / 10.0**3, precision))} {units}'
+    elif units == 'MFLOPs':
+        return f'{str(round(flops / 10.0**6, precision))} {units}'
     else:
-        if units == 'GFLOPs':
-            return str(round(flops / 10.**9, precision)) + ' ' + units
-        elif units == 'MFLOPs':
-            return str(round(flops / 10.**6, precision)) + ' ' + units
-        elif units == 'KFLOPs':
-            return str(round(flops / 10.**3, precision)) + ' ' + units
-        else:
-            return str(flops) + ' FLOPs'
+        return f'{flops} FLOPs'
 
 
 def params_to_string(num_params: float,
@@ -188,18 +187,17 @@ def params_to_string(num_params: float,
     """
     if units is None:
         if num_params // 10**6 > 0:
-            return str(round(num_params / 10**6, precision)) + ' M'
+            return f'{str(round(num_params / 10**6, precision))} M'
         elif num_params // 10**3:
-            return str(round(num_params / 10**3, precision)) + ' k'
+            return f'{str(round(num_params / 10**3, precision))} k'
         else:
             return str(num_params)
+    elif units == 'K':
+        return f'{str(round(num_params / 10.0**3, precision))} {units}'
+    elif units == 'M':
+        return f'{str(round(num_params / 10.0**6, precision))} {units}'
     else:
-        if units == 'M':
-            return str(round(num_params / 10.**6, precision)) + ' ' + units
-        elif units == 'K':
-            return str(round(num_params / 10.**3, precision)) + ' ' + units
-        else:
-            return str(num_params)
+        return str(num_params)
 
 
 def print_model_with_flops(model: nn.Module,
@@ -262,20 +260,18 @@ def print_model_with_flops(model: nn.Module,
     def accumulate_params(self):
         if is_supported_instance(self):
             return self.__params__
-        else:
-            sum = 0
-            for m in self.children():
-                sum += m.accumulate_params()
-            return sum
+        sum = 0
+        for m in self.children():
+            sum += m.accumulate_params()
+        return sum
 
     def accumulate_flops(self):
         if is_supported_instance(self):
             return self.__flops__ / model.__batch_counter__
-        else:
-            sum = 0
-            for m in self.children():
-                sum += m.accumulate_flops()
-            return sum
+        sum = 0
+        for m in self.children():
+            sum += m.accumulate_flops()
+        return sum
 
     def flops_repr(self):
         accumulated_num_params = self.accumulate_params()
@@ -320,8 +316,7 @@ def get_model_parameters_number(model: nn.Module) -> float:
     Returns:
         float: Parameter number of the model.
     """
-    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    return num_params
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 def add_flops_counting_methods(net_main_module: nn.Module) -> nn.Module:
@@ -351,10 +346,11 @@ def compute_average_flops_cost(self) -> Tuple[float, float]:
         float: Current mean flops consumption per image.
     """
     batches_count = self.__batch_counter__
-    flops_sum = 0
-    for module in self.modules():
-        if is_supported_instance(module):
-            flops_sum += module.__flops__
+    flops_sum = sum(
+        module.__flops__
+        for module in self.modules()
+        if is_supported_instance(module)
+    )
     params_sum = get_model_parameters_number(self)
     return flops_sum / batches_count, params_sum
 
@@ -504,7 +500,7 @@ def conv_flops_counter_hook(conv_module: nn.Module, input: tuple,
 
 def batch_counter_hook(module: nn.Module, input: tuple, output: Any) -> None:
     batch_size = 1
-    if len(input) > 0:
+    if input:
         # Can have multiple inputs, getting the first one
         batch_size = len(input[0])
     else:
@@ -543,16 +539,13 @@ def add_flops_counter_variable_or_reset(module: nn.Module) -> None:
 
 
 def is_supported_instance(module: nn.Module) -> bool:
-    if type(module) in get_modules_mapping():
-        return True
-    return False
+    return type(module) in get_modules_mapping()
 
 
 def remove_flops_counter_hook_function(module: nn.Module) -> None:
-    if is_supported_instance(module):
-        if hasattr(module, '__flops_handle__'):
-            module.__flops_handle__.remove()
-            del module.__flops_handle__
+    if is_supported_instance(module) and hasattr(module, '__flops_handle__'):
+        module.__flops_handle__.remove()
+        del module.__flops_handle__
 
 
 def get_modules_mapping() -> Dict:

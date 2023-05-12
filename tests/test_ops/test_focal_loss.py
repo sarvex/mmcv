@@ -94,11 +94,7 @@ class Testfocalloss:
             y = torch.from_numpy(np_y).cuda().long()
 
             floss = SoftmaxFocalLoss(gamma, alpha)
-            if _USING_PARROTS:
-                # gradcheck(floss, (x, y),
-                #           no_grads=[y])
-                pass
-            else:
+            if not _USING_PARROTS:
                 gradcheck(floss, (x, y), eps=1e-2, atol=1e-2)
 
     def _test_grad_sigmoid(self, dtype=torch.float):
@@ -116,11 +112,7 @@ class Testfocalloss:
             y = torch.from_numpy(np_y).cuda().long()
 
             floss = SigmoidFocalLoss(gamma, alpha)
-            if _USING_PARROTS:
-                # gradcheck(floss, (x, y),
-                #           no_grads=[y])
-                pass
-            else:
+            if not _USING_PARROTS:
                 gradcheck(floss, (x, y), eps=1e-2, atol=1e-2)
 
     def test_softmax_float(self):

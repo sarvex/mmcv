@@ -36,7 +36,7 @@ class BasicBlock(nn.Module):
                  style: str = 'pytorch',
                  with_cp: bool = False):
         super().__init__()
-        assert style in ['pytorch', 'caffe']
+        assert style in {'pytorch', 'caffe'}
         self.conv1 = conv3x3(inplanes, planes, stride, dilation)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
@@ -83,7 +83,7 @@ class Bottleneck(nn.Module):
         it is "caffe", the stride-two layer is the first 1x1 conv layer.
         """
         super().__init__()
-        assert style in ['pytorch', 'caffe']
+        assert style in {'pytorch', 'caffe'}
         if style == 'pytorch':
             conv1_stride = 1
             conv2_stride = stride
@@ -165,8 +165,7 @@ def make_res_layer(block: nn.Module,
             nn.BatchNorm2d(planes * block.expansion),
         )
 
-    layers = []
-    layers.append(
+    layers = [
         block(
             inplanes,
             planes,
@@ -174,12 +173,14 @@ def make_res_layer(block: nn.Module,
             dilation,
             downsample,
             style=style,
-            with_cp=with_cp))
+            with_cp=with_cp,
+        )
+    ]
     inplanes = planes * block.expansion
-    for _ in range(1, blocks):
-        layers.append(
-            block(inplanes, planes, 1, dilation, style=style, with_cp=with_cp))
-
+    layers.extend(
+        block(inplanes, planes, 1, dilation, style=style, with_cp=with_cp)
+        for _ in range(1, blocks)
+    )
     return nn.Sequential(*layers)
 
 
@@ -292,10 +293,7 @@ class ResNet(nn.Module):
             x = res_layer(x)
             if i in self.out_indices:
                 outs.append(x)
-        if len(outs) == 1:
-            return outs[0]
-        else:
-            return tuple(outs)
+        return outs[0] if len(outs) == 1 else tuple(outs)
 
     def train(self, mode: bool = True) -> None:
         super().train(mode)

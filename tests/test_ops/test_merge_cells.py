@@ -62,19 +62,8 @@ def test_resize_methods(target_size):
     inputs_x = torch.randn([2, 256, 128, 128])
     h, w = inputs_x.shape[-2:]
     target_h, target_w = target_size
-    if (h <= target_h) or w <= target_w:
-        rs_mode = 'upsample'
-    else:
-        rs_mode = 'downsample'
-
-    if rs_mode == 'upsample':
-        upsample_methods_list = ['nearest', 'bilinear']
-        for method in upsample_methods_list:
-            merge_cell = BaseMergeCell(upsample_mode=method)
-            merge_cell_out = merge_cell._resize(inputs_x, target_size)
-            gt_out = F.interpolate(inputs_x, size=target_size, mode=method)
-            assert merge_cell_out.equal(gt_out)
-    elif rs_mode == 'downsample':
+    rs_mode = 'upsample' if (h <= target_h) or w <= target_w else 'downsample'
+    if rs_mode == 'downsample':
         merge_cell = BaseMergeCell()
         merge_cell_out = merge_cell._resize(inputs_x, target_size)
         if h % target_h != 0 or w % target_w != 0:
@@ -93,3 +82,10 @@ def test_resize_methods(target_size):
         print(merge_cell_out.shape, gt_out.shape)
         assert (merge_cell_out == gt_out).all()
         assert merge_cell_out.shape[-2:] == target_size
+    elif rs_mode == 'upsample':
+        upsample_methods_list = ['nearest', 'bilinear']
+        for method in upsample_methods_list:
+            merge_cell = BaseMergeCell(upsample_mode=method)
+            merge_cell_out = merge_cell._resize(inputs_x, target_size)
+            gt_out = F.interpolate(inputs_x, size=target_size, mode=method)
+            assert merge_cell_out.equal(gt_out)

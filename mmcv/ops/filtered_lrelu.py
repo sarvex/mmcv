@@ -178,8 +178,8 @@ def _filtered_lrelu_ref(input: torch.Tensor,
     assert isinstance(up, int) and up >= 1
     assert isinstance(down, int) and down >= 1
     px0, px1, py0, py1 = _parse_padding(padding)
-    assert gain == float(gain) and gain > 0
-    assert slope == float(slope) and slope >= 0
+    assert gain == gain and gain > 0
+    assert slope == slope and slope >= 0
     assert clamp is None or (clamp == float(clamp) and clamp >= 0)
 
     # Calculate output size.
@@ -211,7 +211,7 @@ def _filtered_lrelu_ref(input: torch.Tensor,
     return output
 
 
-_filtered_lrelu_cuda_cache: Dict = dict()
+_filtered_lrelu_cuda_cache: Dict = {}
 
 
 def _filtered_lrelu_cuda(up: int = 1,
@@ -245,10 +245,10 @@ def _filtered_lrelu_cuda(up: int = 1,
     assert isinstance(up, int) and up >= 1
     assert isinstance(down, int) and down >= 1
     px0, px1, py0, py1 = _parse_padding(padding)
-    assert gain == float(gain) and gain > 0
-    gain = float(gain)
-    assert slope == float(slope) and slope >= 0
-    slope = float(slope)
+    assert gain == gain and gain > 0
+    gain = gain
+    assert slope == slope and slope >= 0
+    slope = slope
     assert clamp is None or (clamp == float(clamp) and clamp >= 0)
     clamp = float(clamp if clamp is not None else 'inf')
 
@@ -257,7 +257,8 @@ def _filtered_lrelu_cuda(up: int = 1,
     if key in _filtered_lrelu_cuda_cache:
         return _filtered_lrelu_cuda_cache[key]
 
-    # Forward op.
+
+
     class FilteredLReluCuda(torch.autograd.Function):
 
         @staticmethod
@@ -373,7 +374,6 @@ def _filtered_lrelu_cuda(up: int = 1,
             assert not ctx.needs_input_grad[1]
             dfd = None
             assert not ctx.needs_input_grad[2]
-            db = None  # 3
             dsi = None
             assert not ctx.needs_input_grad[4]
             dsx = None
@@ -404,10 +404,9 @@ def _filtered_lrelu_cuda(up: int = 1,
                     flip_filter=ff).apply(dy, filter_down, filter_up, None, si,
                                           sx, sy)
 
-            if ctx.needs_input_grad[3]:
-                db = dx.sum([0, 2, 3])
-
+            db = dx.sum([0, 2, 3]) if ctx.needs_input_grad[3] else None
             return dx, dfu, dfd, db, dsi, dsx, dsy
+
 
     # Add to cache.
     _filtered_lrelu_cuda_cache[key] = FilteredLReluCuda

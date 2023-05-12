@@ -30,11 +30,10 @@ class TestNormalize:
             std=[58.395, 57.12, 57.375],
             to_rgb=True)
         transform = Normalize(**img_norm_cfg)
-        results = dict()
         img = mmcv.imread(
             osp.join(osp.dirname(__file__), '../data/color.jpg'), 'color')
         original_img = copy.deepcopy(img)
-        results['img'] = img
+        results = {'img': img}
         results = transform(results)
         mean = np.array(img_norm_cfg['mean'])
         std = np.array(img_norm_cfg['std'])
@@ -492,7 +491,6 @@ class TestRandomGrayscale:
             TRANSFORMS.build(transform)
 
     def test_transform(self):
-        results = dict()
         # test rgb2gray, return the grayscale image with prob = 1.
         transform = dict(
             type='RandomGrayscale',
@@ -501,7 +499,7 @@ class TestRandomGrayscale:
             keep_channels=True)
 
         random_gray_scale_module = TRANSFORMS.build(transform)
-        results['img'] = copy.deepcopy(self.img)
+        results = {'img': copy.deepcopy(self.img)}
         img = random_gray_scale_module(results)['img']
         computed_gray = (self.img[:, :, 0] * 0.299 +
                          self.img[:, :, 1] * 0.587 +
@@ -534,8 +532,7 @@ class MockPackTaskInputs(BaseTransform):
         super().__init__()
 
     def transform(self, results):
-        packed_results = dict(inputs=results['img'], data_sample=Mock())
-        return packed_results
+        return dict(inputs=results['img'], data_sample=Mock())
 
 
 class TestMultiScaleFlipAug:
@@ -573,8 +570,7 @@ class TestMultiScaleFlipAug:
             allow_flip=True,
             flip_direction=['horizontal', 'vertical', 'diagonal'])
         multi_scale_flip_aug_module = TRANSFORMS.build(transform)
-        results = dict()
-        results['img'] = copy.deepcopy(self.original_img)
+        results = {'img': copy.deepcopy(self.original_img)}
         packed_results = multi_scale_flip_aug_module(results)
         assert len(packed_results['inputs']) == 12
 
@@ -586,7 +582,7 @@ class TestMultiScaleFlipAug:
             allow_flip=False,
             flip_direction=['horizontal', 'vertical', 'diagonal'])
         multi_scale_flip_aug_module = TRANSFORMS.build(transform)
-        results = dict()
+        results = {}
         results['img'] = copy.deepcopy(self.original_img)
         packed_results = multi_scale_flip_aug_module(results)
         assert len(packed_results['inputs']) == 3
@@ -609,7 +605,7 @@ class TestMultiScaleFlipAug:
             allow_flip=True,
             flip_direction=['horizontal', 'vertical', 'diagonal'])
         multi_scale_flip_aug_module = TRANSFORMS.build(transform)
-        results = dict()
+        results = {}
         results['img'] = copy.deepcopy(self.original_img)
         packed_results = multi_scale_flip_aug_module(results)
         assert len(packed_results['inputs']) == 12
@@ -632,7 +628,7 @@ class TestMultiScaleFlipAug:
             allow_flip=True,
             flip_direction=['horizontal', 'vertical', 'diagonal'])
         multi_scale_flip_aug_module = TRANSFORMS.build(transform)
-        results = dict()
+        results = {}
         results['img'] = copy.deepcopy(self.original_img)
         packed_results = multi_scale_flip_aug_module(results)
         assert len(packed_results['inputs']) == 12
@@ -654,7 +650,7 @@ class TestMultiScaleFlipAug:
             allow_flip=True,
             flip_direction=['horizontal', 'vertical', 'diagonal'])
         multi_scale_flip_aug_module = TRANSFORMS.build(transform)
-        results = dict()
+        results = {}
         results['img'] = copy.deepcopy(self.original_img)
         packed_results = multi_scale_flip_aug_module(results)
         assert len(packed_results['inputs']) == 4
@@ -686,7 +682,7 @@ class TestRandomChoiceResize:
             TRANSFORMS.build(transform)
 
     def test_random_multiscale_resize(self):
-        results = dict()
+        results = {}
         # test with one scale
         transform = dict(type='RandomChoiceResize', scales=[(1333, 800)])
         random_multiscale_resize = TRANSFORMS.build(transform)

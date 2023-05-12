@@ -54,8 +54,6 @@ class cache_randomness:
         # Get the transform instance whose method is decorated
         # by cache_randomness
         instance = self.instance_ref()
-        name = self.__name__
-
         # Check the flag ``self._cache_enabled``, which should be
         # set by the contextmanagers like ``cache_random_parameters```
         cache_enabled = getattr(instance, '_cache_enabled', False)
@@ -66,6 +64,8 @@ class cache_randomness:
             # ``cache_random_params```.
             if not hasattr(instance, '_cache'):
                 setattr(instance, '_cache', {})
+
+            name = self.__name__
 
             if name not in instance._cache:
                 instance._cache[name] = self.func(instance, *args, **kwargs)
@@ -146,7 +146,7 @@ def cache_random_params(transforms: Union[BaseTransform, Iterable]):
 
     # key2method stores the original methods that are replaced by the wrapped
     # ones. These methods will be restituted when exiting the context.
-    key2method = dict()
+    key2method = {}
 
     # key2counter stores the usage number of each cache_randomness. This is
     # used to check that any cache_randomness is invoked once during processing

@@ -147,7 +147,7 @@ class TestIO:
                                img_cv2_color_bgr_http_with_args)
 
         with pytest.raises(FileNotFoundError):
-            mmcv.imread('/not/exists/' + self.img_path)
+            mmcv.imread(f'/not/exists/{self.img_path}')
 
         # test arg backend pillow
         img_pil_gray_alpha = mmcv.imread(

@@ -208,7 +208,7 @@ def _upfirdn2d_ref(input: torch.Tensor,
     return x
 
 
-_upfirdn2d_cuda_cache: Dict = dict()
+_upfirdn2d_cuda_cache: Dict = {}
 
 
 def _upfirdn2d_cuda(up: int = 1,

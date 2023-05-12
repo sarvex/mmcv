@@ -54,18 +54,19 @@ def use_backend(backend: str) -> None:
     assert backend in supported_backends
     global imread_backend
     imread_backend = backend
-    if imread_backend == 'turbojpeg':
-        if TurboJPEG is None:
-            raise ImportError('`PyTurboJPEG` is not installed')
-        global jpeg
-        if jpeg is None:
-            jpeg = TurboJPEG()
-    elif imread_backend == 'pillow':
+    if imread_backend == 'pillow':
         if Image is None:
             raise ImportError('`Pillow` is not installed')
     elif imread_backend == 'tifffile':
         if tifffile is None:
             raise ImportError('`tifffile` is not installed')
+
+    elif imread_backend == 'turbojpeg':
+        if TurboJPEG is None:
+            raise ImportError('`PyTurboJPEG` is not installed')
+        global jpeg
+        if jpeg is None:
+            jpeg = TurboJPEG()
 
 
 def _jpegflag(flag: str = 'color', channel_order: str = 'bgr'):
@@ -110,7 +111,7 @@ def _pillow2array(img,
             array[:, :, :3] = array[:, :, (2, 1, 0)]  # RGB to BGR
     else:
         # Handle exif orientation tag
-        if flag in ['color', 'grayscale']:
+        if flag in {'color', 'grayscale'}:
             img = ImageOps.exif_transpose(img)
         # If the image mode is not 'RGB', convert it to 'RGB' first.
         if img.mode != 'RGB':
@@ -126,11 +127,11 @@ def _pillow2array(img,
                 img_rgba = img.convert('RGBA')
                 img = Image.new('RGB', img_rgba.size, (124, 117, 104))
                 img.paste(img_rgba, mask=img_rgba.split()[3])  # 3 is alpha
-        if flag in ['color', 'color_ignore_orientation']:
+        if flag in {'color', 'color_ignore_orientation'}:
             array = np.array(img)
             if channel_order != 'rgb':
                 array = array[:, :, ::-1]  # RGB to BGR
-        elif flag in ['grayscale', 'grayscale_ignore_orientation']:
+        elif flag in {'grayscale', 'grayscale_ignore_orientation'}:
             img = img.convert('L')
             array = np.array(img)
         else:
@@ -269,23 +270,21 @@ def imfrombytes(content: bytes,
             content, _jpegflag(flag, channel_order))
         if img.shape[-1] == 1:
             img = img[:, :, 0]
-        return img
     elif backend == 'pillow':
         with io.BytesIO(content) as buff:
             img = Image.open(buff)
             img = _pillow2array(img, flag, channel_order)
-        return img
     elif backend == 'tifffile':
         with io.BytesIO(content) as buff:
             img = tifffile.imread(buff)
-        return img
     else:
         img_np = np.frombuffer(content, np.uint8)
         flag = imread_flags[flag] if is_str(flag) else flag
         img = cv2.imdecode(img_np, flag)
         if flag == IMREAD_COLOR and channel_order == 'rgb':
             cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
-        return img
+
+    return img
 
 
 def imwrite(img: np.ndarray,
@@ -342,7 +341,7 @@ def imwrite(img: np.ndarray,
                 'same time.')
 
     assert is_filepath(file_path)
-    file_path = str(file_path)
+    file_path = file_path
     if auto_mkdir is not None:
         warnings.warn(
             'The parameter `auto_mkdir` will be deprecated in the future and '

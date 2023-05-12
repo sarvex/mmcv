@@ -143,11 +143,7 @@ class Resize(BaseTransform):
         if scale is None:
             self.scale = None
         else:
-            if isinstance(scale, int):
-                self.scale = (scale, scale)
-            else:
-                self.scale = scale
-
+            self.scale = (scale, scale) if isinstance(scale, int) else scale
         self.backend = backend
         self.interpolation = interpolation
         self.keep_ratio = keep_ratio
@@ -346,13 +342,13 @@ class Pad(BaseTransform):
 
         if pad_to_square:
             assert size is None, \
-                'The size and size_divisor must be None ' \
-                'when pad2square is True'
+                    'The size and size_divisor must be None ' \
+                    'when pad2square is True'
         else:
             assert size is not None or size_divisor is not None, \
-                'only one of size and size_divisor should be valid'
+                    'only one of size and size_divisor should be valid'
             assert size is None or size_divisor is None
-        assert padding_mode in ['constant', 'edge', 'reflect', 'symmetric']
+        assert padding_mode in {'constant', 'edge', 'reflect', 'symmetric'}
         self.padding_mode = padding_mode
 
     def _pad_img(self, results: dict) -> None:
@@ -588,8 +584,8 @@ class CenterCrop(BaseTransform):
                 # pad the area
                 img_height = max(img_height, crop_height)
                 img_width = max(img_width, crop_width)
-                pad_size = (img_width, img_height)
                 _pad_cfg = self.pad_cfg.copy()
+                pad_size = (img_width, img_height)
                 _pad_cfg.update(dict(size=pad_size))
                 pad_transform = TRANSFORMS.build(_pad_cfg)
                 results = pad_transform(results)
@@ -659,12 +655,13 @@ class RandomGrayscale(BaseTransform):
                  channel_weights: Sequence[float] = (1., 1., 1.),
                  color_format: str = 'bgr') -> None:
         super().__init__()
-        assert 0. <= prob <= 1., ('The range of ``prob`` value is [0., 1.],' +
-                                  f' but got {prob} instead')
-        self.prob = prob
+        assert (
+            0.0 <= prob <= 1.0
+        ), f'The range of ``prob`` value is [0., 1.], but got {prob} instead'
         self.keep_channels = keep_channels
+        self.prob = prob
         self.channel_weights = channel_weights
-        assert color_format in ['bgr', 'rgb', 'hsv']
+        assert color_format in {'bgr', 'rgb', 'hsv'}
         self.color_format = color_format
 
     @cache_randomness
@@ -686,24 +683,23 @@ class RandomGrayscale(BaseTransform):
             img = mmcv.hsv2bgr(img)
         img = img[..., None] if img.ndim == 2 else img
         num_output_channels = img.shape[2]
-        if self._random_prob() < self.prob:
-            if num_output_channels > 1:
-                assert num_output_channels == len(
-                    self.channel_weights
-                ), 'The length of ``channel_weights`` are supposed to be '
-                f'num_output_channels, but got {len(self.channel_weights)}'
-                ' instead.'
-                normalized_weights = (
-                    np.array(self.channel_weights) / sum(self.channel_weights))
-                img = (normalized_weights * img).sum(axis=2)
-                img = img.astype('uint8')
-                if self.keep_channels:
-                    img = img[:, :, None]
-                    results['img'] = np.dstack(
-                        [img for _ in range(num_output_channels)])
-                else:
-                    results['img'] = img
-                return results
+        if self._random_prob() < self.prob and num_output_channels > 1:
+            assert num_output_channels == len(
+                self.channel_weights
+            ), 'The length of ``channel_weights`` are supposed to be '
+            f'num_output_channels, but got {len(self.channel_weights)}'
+            ' instead.'
+            normalized_weights = (
+                np.array(self.channel_weights) / sum(self.channel_weights))
+            img = (normalized_weights * img).sum(axis=2)
+            img = img.astype('uint8')
+            if self.keep_channels:
+                img = img[:, :, None]
+                results['img'] = np.dstack(
+                    [img for _ in range(num_output_channels)])
+            else:
+                results['img'] = img
+            return results
         img = img.astype('uint8')
         results['img'] = img
         return results
@@ -983,11 +979,10 @@ class TestTimeAug(BaseTransform):
                 f'transforms in {subroutine}')
             results_list.append(result)
 
-        aug_data_dict = {
+        return {
             key: [item[key] for item in results_list]  # type: ignore
             for key in results_list[0]  # type: ignore
         }
-        return aug_data_dict
 
     def __repr__(self) -> str:
         repr_str = self.__class__.__name__
@@ -1059,10 +1054,7 @@ class RandomChoiceResize(BaseTransform):
         **resize_kwargs,
     ) -> None:
         super().__init__()
-        if isinstance(scales, list):
-            self.scales = scales
-        else:
-            self.scales = [scales]
+        self.scales = scales if isinstance(scales, list) else [scales]
         assert mmengine.is_seq_of(self.scales, (tuple, int))
 
         self.resize_cfg = dict(type=resize_type, **resize_kwargs)
@@ -1211,16 +1203,16 @@ class RandomFlip(BaseTransform):
         assert bboxes.shape[-1] % 4 == 0
         flipped = bboxes.copy()
         h, w = img_shape
-        if direction == 'horizontal':
+        if direction == 'diagonal':
+            flipped[..., 0::4] = w - bboxes[..., 2::4]
+            flipped[..., 1::4] = h - bboxes[..., 3::4]
+            flipped[..., 2::4] = w - bboxes[..., 0::4]
+            flipped[..., 3::4] = h - bboxes[..., 1::4]
+        elif direction == 'horizontal':
             flipped[..., 0::4] = w - bboxes[..., 2::4]
             flipped[..., 2::4] = w - bboxes[..., 0::4]
         elif direction == 'vertical':
             flipped[..., 1::4] = h - bboxes[..., 3::4]
-            flipped[..., 3::4] = h - bboxes[..., 1::4]
-        elif direction == 'diagonal':
-            flipped[..., 0::4] = w - bboxes[..., 2::4]
-            flipped[..., 1::4] = h - bboxes[..., 3::4]
-            flipped[..., 2::4] = w - bboxes[..., 0::4]
             flipped[..., 3::4] = h - bboxes[..., 1::4]
         else:
             raise ValueError(
@@ -1311,9 +1303,7 @@ class RandomFlip(BaseTransform):
             single_ratio = self.prob / (len(direction_list) - 1)
             prob_list = [single_ratio] * (len(direction_list) - 1) + [non_prob]
 
-        cur_dir = np.random.choice(direction_list, p=prob_list)
-
-        return cur_dir
+        return np.random.choice(direction_list, p=prob_list)
 
     def _flip(self, results: dict) -> None:
         """Flip images, bounding boxes, semantic segmentation map and
@@ -1487,8 +1477,7 @@ class RandomResize(BaseTransform):
         scale_1 = [scales[0][1], scales[1][1]]
         edge_0 = np.random.randint(min(scale_0), max(scale_0) + 1)
         edge_1 = np.random.randint(min(scale_1), max(scale_1) + 1)
-        scale = (edge_0, edge_1)
-        return scale
+        return edge_0, edge_1
 
     @staticmethod
     def _random_sample_ratio(scale: tuple, ratio_range: Tuple[float,

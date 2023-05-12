@@ -81,7 +81,7 @@ class ToTensor(BaseTransform):
         return results
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f'(keys={self.keys})'
+        return f'{self.__class__.__name__}(keys={self.keys})'
 
 
 @TRANSFORMS.register_module()
@@ -124,4 +124,4 @@ class ImageToTensor(BaseTransform):
         return results
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f'(keys={self.keys})'
+        return f'{self.__class__.__name__}(keys={self.keys})'

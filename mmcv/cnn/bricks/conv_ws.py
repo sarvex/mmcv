@@ -134,8 +134,7 @@ class ConvAWS2d(nn.Conv2d):
                                       strict, local_missing_keys,
                                       unexpected_keys, error_msgs)
         if self.weight_gamma.data.mean() > 0:
-            for k in local_missing_keys:
-                missing_keys.append(k)
+            missing_keys.extend(iter(local_missing_keys))
             return
         weight = self.weight.data
         weight_flat = weight.view(weight.size(0), -1)
@@ -149,5 +148,4 @@ class ConvAWS2d(nn.Conv2d):
         ]
         for k in missing_gamma_beta:
             local_missing_keys.remove(k)
-        for k in local_missing_keys:
-            missing_keys.append(k)
+        missing_keys.extend(iter(local_missing_keys))

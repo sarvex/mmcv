@@ -25,7 +25,8 @@ class NMSop(torch.autograd.Function):
                 valid_mask, as_tuple=False).squeeze(dim=1)
 
         inds = ext_module.nms(
-            bboxes, scores, iou_threshold=float(iou_threshold), offset=offset)
+            bboxes, scores, iou_threshold=iou_threshold, offset=offset
+        )
 
         if max_num > 0:
             inds = inds[:max_num]
@@ -45,11 +46,12 @@ class SoftNMSop(torch.autograd.Function):
             boxes.cpu(),
             scores.cpu(),
             dets.cpu(),
-            iou_threshold=float(iou_threshold),
-            sigma=float(sigma),
-            min_score=float(min_score),
-            method=int(method),
-            offset=int(offset))
+            iou_threshold=iou_threshold,
+            sigma=sigma,
+            min_score=min_score,
+            method=method,
+            offset=offset,
+        )
         return dets, inds
 
     @staticmethod
@@ -57,7 +59,7 @@ class SoftNMSop(torch.autograd.Function):
                  offset):
         from packaging import version
         assert version.parse(torch.__version__) >= version.parse('1.7.0')
-        nms_out = g.op(
+        return g.op(
             'mmcv::SoftNonMaxSuppression',
             boxes,
             scores,
@@ -66,8 +68,8 @@ class SoftNMSop(torch.autograd.Function):
             min_score_f=float(min_score),
             method_i=int(method),
             offset_i=int(offset),
-            outputs=2)
-        return nms_out
+            outputs=2,
+        )
 
 
 array_like_type = Union[Tensor, np.ndarray]
@@ -122,7 +124,7 @@ def nms(boxes: array_like_type,
         scores = torch.from_numpy(scores)
     assert boxes.size(1) == 4
     assert boxes.size(0) == scores.size(0)
-    assert offset in (0, 1)
+    assert offset in {0, 1}
 
     inds = NMSop.apply(boxes, scores, iou_threshold, offset, score_threshold,
                        max_num)
@@ -182,35 +184,39 @@ def soft_nms(boxes: array_like_type,
         scores = torch.from_numpy(scores)
     assert boxes.size(1) == 4
     assert boxes.size(0) == scores.size(0)
-    assert offset in (0, 1)
+    assert offset in {0, 1}
     method_dict = {'naive': 0, 'linear': 1, 'gaussian': 2}
-    assert method in method_dict.keys()
+    assert method in method_dict
 
     if torch.__version__ == 'parrots':
         dets = boxes.new_empty((boxes.size(0), 5), device='cpu')
         indata_list = [boxes.cpu(), scores.cpu(), dets.cpu()]
         indata_dict = {
-            'iou_threshold': float(iou_threshold),
-            'sigma': float(sigma),
+            'iou_threshold': iou_threshold,
+            'sigma': sigma,
             'min_score': min_score,
             'method': method_dict[method],
-            'offset': int(offset)
+            'offset': offset,
         }
         inds = ext_module.softnms(*indata_list, **indata_dict)
     else:
-        dets, inds = SoftNMSop.apply(boxes.cpu(), scores.cpu(),
-                                     float(iou_threshold), float(sigma),
-                                     float(min_score), method_dict[method],
-                                     int(offset))
+        dets, inds = SoftNMSop.apply(
+            boxes.cpu(),
+            scores.cpu(),
+            iou_threshold,
+            sigma,
+            min_score,
+            method_dict[method],
+            offset,
+        )
 
     dets = dets[:inds.size(0)]
 
-    if is_numpy:
-        dets = dets.cpu().numpy()
-        inds = inds.cpu().numpy()
-        return dets, inds
-    else:
+    if not is_numpy:
         return dets.to(device=boxes.device), inds.to(device=boxes.device)
+    dets = dets.cpu().numpy()
+    inds = inds.cpu().numpy()
+    return dets, inds
 
 
 def batched_nms(boxes: Tensor,
@@ -268,30 +274,27 @@ def batched_nms(boxes: Tensor,
         return torch.cat([boxes, scores[:, None]], -1), inds
 
     nms_cfg_ = nms_cfg.copy()
-    class_agnostic = nms_cfg_.pop('class_agnostic', class_agnostic)
-    if class_agnostic:
+    if class_agnostic := nms_cfg_.pop('class_agnostic', class_agnostic):
         boxes_for_nms = boxes
+    elif boxes.size(-1) == 5:
+        # Strictly, the maximum coordinates of the rotating box
+        # (x,y,w,h,a) should be calculated by polygon coordinates.
+        # But the conversion from rotated box to polygon will
+        # slow down the speed.
+        # So we use max(x,y) + max(w,h) as max coordinate
+        # which is larger than polygon max coordinate
+        # max(x1, y1, x2, y2,x3, y3, x4, y4)
+        max_coordinate = boxes[..., :2].max() + boxes[..., 2:4].max()
+        offsets = idxs.to(boxes) * (
+            max_coordinate + torch.tensor(1).to(boxes))
+        boxes_ctr_for_nms = boxes[..., :2] + offsets[:, None]
+        boxes_for_nms = torch.cat([boxes_ctr_for_nms, boxes[..., 2:5]],
+                                  dim=-1)
     else:
-        # When using rotated boxes, only apply offsets on center.
-        if boxes.size(-1) == 5:
-            # Strictly, the maximum coordinates of the rotating box
-            # (x,y,w,h,a) should be calculated by polygon coordinates.
-            # But the conversion from rotated box to polygon will
-            # slow down the speed.
-            # So we use max(x,y) + max(w,h) as max coordinate
-            # which is larger than polygon max coordinate
-            # max(x1, y1, x2, y2,x3, y3, x4, y4)
-            max_coordinate = boxes[..., :2].max() + boxes[..., 2:4].max()
-            offsets = idxs.to(boxes) * (
-                max_coordinate + torch.tensor(1).to(boxes))
-            boxes_ctr_for_nms = boxes[..., :2] + offsets[:, None]
-            boxes_for_nms = torch.cat([boxes_ctr_for_nms, boxes[..., 2:5]],
-                                      dim=-1)
-        else:
-            max_coordinate = boxes.max()
-            offsets = idxs.to(boxes) * (
-                max_coordinate + torch.tensor(1).to(boxes))
-            boxes_for_nms = boxes + offsets[:, None]
+        max_coordinate = boxes.max()
+        offsets = idxs.to(boxes) * (
+            max_coordinate + torch.tensor(1).to(boxes))
+        boxes_for_nms = boxes + offsets[:, None]
 
     nms_type = nms_cfg_.pop('type', 'nms')
     nms_op = eval(nms_type)
@@ -360,7 +363,7 @@ def nms_match(dets: array_like_type,
         else:
             dets_t = torch.from_numpy(dets)
         indata_list = [dets_t]
-        indata_dict = {'iou_threshold': float(iou_threshold)}
+        indata_dict = {'iou_threshold': iou_threshold}
         matched = ext_module.nms_match(*indata_list, **indata_dict)
         if torch.__version__ == 'parrots':
             matched = matched.tolist()  # type: ignore

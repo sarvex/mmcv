@@ -262,9 +262,7 @@ class LoadAnnotations(BaseTransform):
         Returns:
             dict: The dict contains loaded bounding box annotations.
         """
-        gt_bboxes = []
-        for instance in results['instances']:
-            gt_bboxes.append(instance['bbox'])
+        gt_bboxes = [instance['bbox'] for instance in results['instances']]
         results['gt_bboxes'] = np.array(
             gt_bboxes, dtype=np.float32).reshape(-1, 4)
 
@@ -278,9 +276,9 @@ class LoadAnnotations(BaseTransform):
         Returns:
             dict: The dict contains loaded label annotations.
         """
-        gt_bboxes_labels = []
-        for instance in results['instances']:
-            gt_bboxes_labels.append(instance['bbox_label'])
+        gt_bboxes_labels = [
+            instance['bbox_label'] for instance in results['instances']
+        ]
         results['gt_bboxes_labels'] = np.array(
             gt_bboxes_labels, dtype=np.int64)
 
@@ -316,9 +314,7 @@ class LoadAnnotations(BaseTransform):
         Returns:
             dict: The dict contains loaded keypoints annotations.
         """
-        gt_keypoints = []
-        for instance in results['instances']:
-            gt_keypoints.append(instance['keypoints'])
+        gt_keypoints = [instance['keypoints'] for instance in results['instances']]
         results['gt_keypoints'] = np.array(gt_keypoints, np.float32).reshape(
             (len(gt_keypoints), -1, 3))
 

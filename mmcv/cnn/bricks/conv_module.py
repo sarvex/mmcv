@@ -148,10 +148,9 @@ class ConvModule(nn.Module):
             self.norm_name, norm = build_norm_layer(
                 norm_cfg, norm_channels)  # type: ignore
             self.add_module(self.norm_name, norm)
-            if self.with_bias:
-                if isinstance(norm, (_BatchNorm, _InstanceNorm)):
-                    warnings.warn(
-                        'Unnecessary conv bias before batch/instance norm')
+            if self.with_bias and isinstance(norm, (_BatchNorm, _InstanceNorm)):
+                warnings.warn(
+                    'Unnecessary conv bias before batch/instance norm')
         else:
             self.norm_name = None  # type: ignore
 
@@ -170,10 +169,7 @@ class ConvModule(nn.Module):
 
     @property
     def norm(self):
-        if self.norm_name:
-            return getattr(self, self.norm_name)
-        else:
-            return None
+        return getattr(self, self.norm_name) if self.norm_name else None
 
     def init_weights(self):
         # 1. It is mainly for customized conv layers with their own

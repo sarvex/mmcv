@@ -56,7 +56,7 @@ class BaseMergeCell(nn.Module):
                  input_norm_cfg: Optional[dict] = None,
                  upsample_mode: str = 'nearest'):
         super().__init__()
-        assert upsample_mode in ['nearest', 'bilinear']
+        assert upsample_mode in {'nearest', 'bilinear'}
         self.with_out_conv = with_out_conv
         self.with_input1_conv = with_input1_conv
         self.with_input2_conv = with_input2_conv
@@ -148,8 +148,7 @@ class ConcatCell(BaseMergeCell):
         super().__init__(in_channels * 2, out_channels, **kwargs)
 
     def _binary_op(self, x1, x2):
-        ret = torch.cat([x1, x2], dim=1)
-        return ret
+        return torch.cat([x1, x2], dim=1)
 
 
 class GlobalPoolingCell(BaseMergeCell):

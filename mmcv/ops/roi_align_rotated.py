@@ -166,8 +166,8 @@ class RoIAlignRotated(nn.Module):
         super().__init__()
 
         self.output_size = _pair(output_size)
-        self.spatial_scale = float(spatial_scale)
-        self.sampling_ratio = int(sampling_ratio)
+        self.spatial_scale = spatial_scale
+        self.sampling_ratio = sampling_ratio
         self.aligned = aligned
         self.clockwise = clockwise
 

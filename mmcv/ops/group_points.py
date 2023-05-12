@@ -112,7 +112,7 @@ class QueryAndGroup(nn.Module):
         # (B, 3, npoint, sample_num)
         grouped_xyz = grouping_operation(xyz_trans, idx)
         grouped_xyz_diff = grouped_xyz - \
-            center_xyz.transpose(1, 2).unsqueeze(-1)  # relative offsets
+                center_xyz.transpose(1, 2).unsqueeze(-1)  # relative offsets
         if self.normalize_xyz:
             grouped_xyz_diff /= self.max_radius
 
@@ -136,10 +136,7 @@ class QueryAndGroup(nn.Module):
             ret.append(unique_cnt)
         if self.return_grouped_idx:
             ret.append(idx)
-        if len(ret) == 1:
-            return ret[0]
-        else:
-            return tuple(ret)
+        return ret[0] if len(ret) == 1 else tuple(ret)
 
 
 class GroupAll(nn.Module):
@@ -167,18 +164,15 @@ class GroupAll(nn.Module):
             Tensor: (B, C + 3, 1, N) Grouped feature.
         """
         grouped_xyz = xyz.transpose(1, 2).unsqueeze(2)
-        if features is not None:
-            grouped_features = features.unsqueeze(2)
-            if self.use_xyz:
-                # (B, 3 + C, 1, N)
-                new_features = torch.cat([grouped_xyz, grouped_features],
-                                         dim=1)
-            else:
-                new_features = grouped_features
-        else:
-            new_features = grouped_xyz
+        if features is None:
+            return grouped_xyz
 
-        return new_features
+        grouped_features = features.unsqueeze(2)
+        return (
+            torch.cat([grouped_xyz, grouped_features], dim=1)
+            if self.use_xyz
+            else grouped_features
+        )
 
 
 class GroupingOperation(Function):

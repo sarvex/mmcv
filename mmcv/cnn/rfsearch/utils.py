@@ -31,23 +31,33 @@ def expand_rates(dilation: tuple, config: dict) -> list:
     small_rates = []
     for _ in range(config['num_branches'] // 2):
         large_rates.append(
-            tuple([
+            (
                 np.clip(
-                    int(round((1 + exp_rate) * dilation[0])), config['mmin'],
-                    config['mmax']).item(),
+                    int(round((1 + exp_rate) * dilation[0])),
+                    config['mmin'],
+                    config['mmax'],
+                ).item(),
                 np.clip(
-                    int(round((1 + exp_rate) * dilation[1])), config['mmin'],
-                    config['mmax']).item()
-            ]))
+                    int(round((1 + exp_rate) * dilation[1])),
+                    config['mmin'],
+                    config['mmax'],
+                ).item(),
+            )
+        )
         small_rates.append(
-            tuple([
+            (
                 np.clip(
-                    int(round((1 - exp_rate) * dilation[0])), config['mmin'],
-                    config['mmax']).item(),
+                    int(round((1 - exp_rate) * dilation[0])),
+                    config['mmin'],
+                    config['mmax'],
+                ).item(),
                 np.clip(
-                    int(round((1 - exp_rate) * dilation[1])), config['mmin'],
-                    config['mmax']).item()
-            ]))
+                    int(round((1 - exp_rate) * dilation[1])),
+                    config['mmin'],
+                    config['mmax'],
+                ).item(),
+            )
+        )
 
     small_rates.reverse()
 
@@ -64,5 +74,4 @@ def expand_rates(dilation: tuple, config: dict) -> list:
 def get_single_padding(kernel_size: int,
                        stride: int = 1,
                        dilation: int = 1) -> int:
-    padding = ((stride - 1) + dilation * (kernel_size - 1)) // 2
-    return padding
+    return ((stride - 1) + dilation * (kernel_size - 1)) // 2

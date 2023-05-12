@@ -113,7 +113,7 @@ class BezierAlign(nn.Module):
 
         self.output_size = _pair(output_size)
         self.spatial_scale = float(spatial_scale)
-        self.sampling_ratio = int(sampling_ratio)
+        self.sampling_ratio = sampling_ratio
         self.aligned = aligned
 
     def forward(self, input: torch.Tensor,

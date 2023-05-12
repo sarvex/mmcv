@@ -68,8 +68,7 @@ def test_build_conv_layer():
         cfg = dict(type=type_name)
         # SparseInverseConv2d and SparseInverseConv3d do not have the argument
         # 'dilation'
-        if type_name == 'SparseInverseConv2d' or type_name == \
-                'SparseInverseConv3d':
+        if type_name in ['SparseInverseConv2d', 'SparseInverseConv3d']:
             kwargs.pop('dilation')
         if 'conv' in type_name.lower():
             layer = build_conv_layer(cfg, **kwargs)
@@ -124,7 +123,7 @@ def test_build_norm_layer():
 
     with pytest.raises(KeyError):
         # `type` must be in cfg
-        cfg = dict()
+        cfg = {}
         build_norm_layer(cfg, 3)
 
     with pytest.raises(KeyError):
@@ -183,10 +182,11 @@ def test_build_activation_layer():
 
     for module_name in ['activation', 'hsigmoid', 'hswish', 'swish']:
         act_module = import_module(f'mmcv.cnn.bricks.{module_name}')
-        for key, value in act_module.__dict__.items():
-            if isinstance(value, type) and issubclass(value, nn.Module):
-                act_names.append(key)
-
+        act_names.extend(
+            key
+            for key, value in act_module.__dict__.items()
+            if isinstance(value, type) and issubclass(value, nn.Module)
+        )
     with pytest.raises(TypeError):
         # cfg must be a dict
         cfg = 'ReLU'
@@ -194,7 +194,7 @@ def test_build_activation_layer():
 
     with pytest.raises(KeyError):
         # `type` must be in cfg
-        cfg = dict()
+        cfg = {}
         build_activation_layer(cfg)
 
     with pytest.raises(KeyError):
@@ -226,10 +226,11 @@ def test_build_padding_layer():
     pad_names = ['zero', 'reflect', 'replicate']
     for module_name in ['padding']:
         pad_module = import_module(f'mmcv.cnn.bricks.{module_name}')
-        for key, value in pad_module.__dict__.items():
-            if isinstance(value, type) and issubclass(value, nn.Module):
-                pad_names.append(key)
-
+        pad_names.extend(
+            key
+            for key, value in pad_module.__dict__.items()
+            if isinstance(value, type) and issubclass(value, nn.Module)
+        )
     with pytest.raises(TypeError):
         # cfg must be a dict
         cfg = 'reflect'
@@ -237,7 +238,7 @@ def test_build_padding_layer():
 
     with pytest.raises(KeyError):
         # `type` must be in cfg
-        cfg = dict()
+        cfg = {}
         build_padding_layer(cfg)
 
     with pytest.raises(KeyError):
@@ -266,7 +267,7 @@ def test_upsample_layer():
 
     with pytest.raises(KeyError):
         # `type` must be in cfg
-        cfg = dict()
+        cfg = {}
         build_upsample_layer(cfg)
 
     with pytest.raises(KeyError):
@@ -382,7 +383,7 @@ def test_build_plugin_layer():
 
     with pytest.raises(KeyError):
         # `type` must be in cfg
-        cfg = dict()
+        cfg = {}
         build_plugin_layer(cfg)
 
     with pytest.raises(KeyError):
@@ -400,21 +401,21 @@ def test_build_plugin_layer():
         cfg = dict(type='ContextBlock')
         name, layer = build_plugin_layer(
             cfg, postfix=postfix, in_channels=16, ratio=1. / 4)
-        assert name == 'context_block' + str(postfix)
+        assert name == f'context_block{str(postfix)}'
         assert isinstance(layer, MODELS.module_dict['ContextBlock'])
 
     # test GeneralizedAttention
     for postfix in ['', '_test', 1]:
         cfg = dict(type='GeneralizedAttention')
         name, layer = build_plugin_layer(cfg, postfix=postfix, in_channels=16)
-        assert name == 'gen_attention_block' + str(postfix)
+        assert name == f'gen_attention_block{str(postfix)}'
         assert isinstance(layer, MODELS.module_dict['GeneralizedAttention'])
 
     # test NonLocal2d
     for postfix in ['', '_test', 1]:
         cfg = dict(type='NonLocal2d')
         name, layer = build_plugin_layer(cfg, postfix=postfix, in_channels=16)
-        assert name == 'nonlocal_block' + str(postfix)
+        assert name == f'nonlocal_block{str(postfix)}'
         assert isinstance(layer, MODELS.module_dict['NonLocal2d'])
 
     # test ConvModule
@@ -426,5 +427,5 @@ def test_build_plugin_layer():
             in_channels=16,
             out_channels=4,
             kernel_size=3)
-        assert name == 'conv_block' + str(postfix)
+        assert name == f'conv_block{str(postfix)}'
         assert isinstance(layer, MODELS.module_dict['ConvModule'])

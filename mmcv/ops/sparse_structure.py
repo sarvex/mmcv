@@ -45,9 +45,7 @@ class SparseConvTensor:
     def find_indice_pair(self, key):
         if key is None:
             return None
-        if key in self.indice_dict:
-            return self.indice_dict[key]
-        return None
+        return self.indice_dict[key] if key in self.indice_dict else None
 
     def dense(self, channels_first: bool = True) -> torch.Tensor:
         output_shape = [self.batch_size] + list(

@@ -195,15 +195,15 @@ def test_bias():
 
 
 def conv_forward(self, x):
-    return x + '_conv'
+    return f'{x}_conv'
 
 
 def bn_forward(self, x):
-    return x + '_bn'
+    return f'{x}_bn'
 
 
 def relu_forward(self, x):
-    return x + '_relu'
+    return f'{x}_relu'
 
 
 @patch('torch.nn.ReLU.forward', relu_forward)

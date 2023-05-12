@@ -58,7 +58,7 @@ class RFSearchHook(Hook):
                  rfstructure_file: Optional[str] = None,
                  by_epoch: bool = True,
                  verbose: bool = True):
-        assert mode in ['search', 'fixed_single_branch', 'fixed_multi_branch']
+        assert mode in {'search', 'fixed_single_branch', 'fixed_multi_branch'}
         assert config is not None
         self.config = config
         self.config['structure'] = {}
@@ -156,28 +156,26 @@ class RFSearchHook(Hook):
                 Defaults to None.
             prefix (str): Prefix for function recursion. Defaults to ''.
         """
-        op = 'torch.nn.' + search_op
+        op = f'torch.nn.{search_op}'
         for name, module in model.named_children():
-            if prefix == '':
-                fullname = 'module.' + name
-            else:
-                fullname = prefix + '.' + name
-            if self.config['search']['skip_layer'] is not None:
-                if any(layer in fullname
-                       for layer in self.config['search']['skip_layer']):
-                    continue
+            fullname = f'module.{name}' if not prefix else f'{prefix}.{name}'
+            if self.config['search']['skip_layer'] is not None and any(
+                layer in fullname for layer in self.config['search']['skip_layer']
+            ):
+                continue
             if isinstance(module, eval(op)):
-                if 1 < module.kernel_size[0] and \
-                    0 != module.kernel_size[0] % 2 or \
-                    1 < module.kernel_size[1] and \
-                        0 != module.kernel_size[1] % 2:
-                    moduleWrap = eval(search_op + 'RFSearchOp')(
-                        module, self.config['search'], self.verbose)
+                if (
+                    module.kernel_size[0] > 1
+                    and module.kernel_size[0] % 2 != 0
+                    or module.kernel_size[1] > 1
+                    and module.kernel_size[1] % 2 != 0
+                ):
+                    moduleWrap = eval(f'{search_op}RFSearchOp')(
+                        module, self.config['search'], self.verbose
+                    )
                     moduleWrap = moduleWrap.to(module.weight.device)
                     if self.verbose:
-                        print_log(
-                            'Wrap model %s to %s.' %
-                            (str(module), str(moduleWrap)), 'current')
+                        print_log(f'Wrap model {str(module)} to {str(moduleWrap)}.', 'current')
                     setattr(model, name, moduleWrap)
             elif not isinstance(module, BaseConvRFSearchOp):
                 self.wrap_model(module, search_op, fullname)
@@ -198,21 +196,20 @@ class RFSearchHook(Hook):
                 Defaults to None.
             prefix (str): Prefix for function recursion. Defaults to ''.
         """
-        op = 'torch.nn.' + search_op
+        op = f'torch.nn.{search_op}'
         for name, module in model.named_children():
-            if prefix == '':
-                fullname = 'module.' + name
-            else:
-                fullname = prefix + '.' + name
-            if self.config['search']['skip_layer'] is not None:
-                if any(layer in fullname
-                       for layer in self.config['search']['skip_layer']):
-                    continue
+            fullname = f'module.{name}' if not prefix else f'{prefix}.{name}'
+            if self.config['search']['skip_layer'] is not None and any(
+                layer in fullname for layer in self.config['search']['skip_layer']
+            ):
+                continue
             if isinstance(module, eval(op)):
-                if 1 < module.kernel_size[0] and \
-                    0 != module.kernel_size[0] % 2 or \
-                    1 < module.kernel_size[1] and \
-                        0 != module.kernel_size[1] % 2:
+                if (
+                    module.kernel_size[0] > 1
+                    and module.kernel_size[0] % 2 != 0
+                    or module.kernel_size[1] > 1
+                    and module.kernel_size[1] % 2 != 0
+                ):
                     if isinstance(self.config['structure'][fullname], int):
                         self.config['structure'][fullname] = [
                             self.config['structure'][fullname],

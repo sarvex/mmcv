@@ -124,25 +124,24 @@ class DynamicScatter(nn.Module):
         """
         if coors.size(-1) == 3:
             return self.forward_single(points, coors)
-        else:
-            batch_size = coors[-1, 0] + 1
-            voxels, voxel_coors = [], []
-            for i in range(batch_size):
-                inds = torch.where(coors[:, 0] == i)
-                voxel, voxel_coor = self.forward_single(
-                    points[inds], coors[inds][:, 1:])
-                coor_pad = F.pad(voxel_coor, (1, 0), mode='constant', value=i)
-                voxel_coors.append(coor_pad)
-                voxels.append(voxel)
-            features = torch.cat(voxels, dim=0)
-            feature_coors = torch.cat(voxel_coors, dim=0)
+        batch_size = coors[-1, 0] + 1
+        voxels, voxel_coors = [], []
+        for i in range(batch_size):
+            inds = torch.where(coors[:, 0] == i)
+            voxel, voxel_coor = self.forward_single(
+                points[inds], coors[inds][:, 1:])
+            coor_pad = F.pad(voxel_coor, (1, 0), mode='constant', value=i)
+            voxel_coors.append(coor_pad)
+            voxels.append(voxel)
+        features = torch.cat(voxels, dim=0)
+        feature_coors = torch.cat(voxel_coors, dim=0)
 
-            return features, feature_coors
+        return features, feature_coors
 
     def __repr__(self):
-        s = self.__class__.__name__ + '('
-        s += 'voxel_size=' + str(self.voxel_size)
-        s += ', point_cloud_range=' + str(self.point_cloud_range)
-        s += ', average_points=' + str(self.average_points)
+        s = f'{self.__class__.__name__}('
+        s += f'voxel_size={str(self.voxel_size)}'
+        s += f', point_cloud_range={str(self.point_cloud_range)}'
+        s += f', average_points={str(self.average_points)}'
         s += ')'
         return s

@@ -42,9 +42,9 @@ class DeformRoIPoolFunction(Function):
         if offset is None:
             offset = input.new_zeros(0)
         ctx.output_size = _pair(output_size)
-        ctx.spatial_scale = float(spatial_scale)
-        ctx.sampling_ratio = int(sampling_ratio)
-        ctx.gamma = float(gamma)
+        ctx.spatial_scale = spatial_scale
+        ctx.sampling_ratio = sampling_ratio
+        ctx.gamma = gamma
 
         assert rois.size(1) == 5, 'RoI must be (idx, x1, y1, x2, y2)!'
 
@@ -104,9 +104,9 @@ class DeformRoIPool(nn.Module):
                  gamma: float = 0.1):
         super().__init__()
         self.output_size = _pair(output_size)
-        self.spatial_scale = float(spatial_scale)
-        self.sampling_ratio = int(sampling_ratio)
-        self.gamma = float(gamma)
+        self.spatial_scale = spatial_scale
+        self.sampling_ratio = sampling_ratio
+        self.gamma = gamma
 
     def forward(self,
                 input: Tensor,

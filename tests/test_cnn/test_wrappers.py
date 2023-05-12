@@ -137,10 +137,7 @@ def test_conv_transposed_2d(in_w, in_h, in_channel, out_channel, kernel_size,
                             stride, padding, dilation):
     # wrapper op with 0-dim input
     x_empty = torch.randn(0, in_channel, in_h, in_w, requires_grad=True)
-    # out padding must be smaller than either stride or dilation
-    op = min(stride, dilation) - 1
-    if torch.__version__ == 'parrots':
-        op = 0
+    op = 0 if torch.__version__ == 'parrots' else min(stride, dilation) - 1
     torch.manual_seed(0)
     wrapper = ConvTranspose2d(
         in_channel,

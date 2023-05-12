@@ -22,8 +22,7 @@ def drop_path(x: torch.Tensor,
     shape = (x.shape[0], ) + (1, ) * (x.ndim - 1)
     random_tensor = keep_prob + torch.rand(
         shape, dtype=x.dtype, device=x.device)
-    output = x.div(keep_prob) * random_tensor.floor()
-    return output
+    return x.div(keep_prob) * random_tensor.floor()
 
 
 @MODELS.register_module()

@@ -22,7 +22,7 @@ class TestFusedBiasLeakyReLU:
             cls.input_tensor = torch.randn((2, 2, 2, 2),
                                            requires_grad=True).cuda()
             cls.bias = torch.zeros(2, requires_grad=True).cuda()
-        elif IS_NPU_AVAILABLE:
+        else:
             cls.input_tensor = torch.randn((2, 2, 2, 2),
                                            requires_grad=True).npu()
             cls.bias = torch.zeros(2, requires_grad=True).npu()

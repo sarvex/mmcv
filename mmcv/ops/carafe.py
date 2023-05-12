@@ -35,7 +35,7 @@ class CARAFENaiveFunction(Function):
     def forward(ctx, features: Tensor, masks: Tensor, kernel_size: int,
                 group_size: int, scale_factor: int) -> Tensor:
         assert scale_factor >= 1
-        assert masks.size(1) == kernel_size * kernel_size * group_size
+        assert masks.size(1) == kernel_size**2 * group_size
         assert masks.size(-1) == features.size(-1) * scale_factor
         assert masks.size(-2) == features.size(-2) * scale_factor
         assert features.size(1) % group_size == 0
@@ -57,7 +57,7 @@ class CARAFENaiveFunction(Function):
             scale_factor=scale_factor)
 
         if features.requires_grad or masks.requires_grad or \
-                torch.__version__ == 'parrots':
+                    torch.__version__ == 'parrots':
             ctx.save_for_backward(features, masks)
         return output
 
@@ -123,7 +123,7 @@ class CARAFEFunction(Function):
     def forward(ctx, features: Tensor, masks: Tensor, kernel_size: int,
                 group_size: int, scale_factor: int) -> Tensor:
         assert scale_factor >= 1
-        assert masks.size(1) == kernel_size * kernel_size * group_size
+        assert masks.size(1) == kernel_size**2 * group_size
         assert masks.size(-1) == features.size(-1) * scale_factor
         assert masks.size(-2) == features.size(-2) * scale_factor
         assert features.size(1) % group_size == 0
@@ -151,7 +151,7 @@ class CARAFEFunction(Function):
             scale_factor=scale_factor)
 
         if features.requires_grad or masks.requires_grad or \
-                torch.__version__ == 'parrots':
+                    torch.__version__ == 'parrots':
             ctx.save_for_backward(features, masks, rfeatures)
         return output
 
@@ -260,12 +260,15 @@ class CARAFEPack(nn.Module):
                                             1)
         self.content_encoder = nn.Conv2d(
             self.compressed_channels,
-            self.up_kernel * self.up_kernel * self.up_group *
-            self.scale_factor * self.scale_factor,
+            (
+                (self.up_kernel**2 * self.up_group * self.scale_factor)
+                * self.scale_factor
+            ),
             self.encoder_kernel,
             padding=int((self.encoder_kernel - 1) * self.encoder_dilation / 2),
             dilation=self.encoder_dilation,
-            groups=1)
+            groups=1,
+        )
         self.init_weights()
 
     def init_weights(self):

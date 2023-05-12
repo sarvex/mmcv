@@ -86,8 +86,7 @@ class SumTwoValues(BaseTransform):
         return results
 
     def __repr__(self) -> str:
-        repr_str = self.__class__.__name__
-        return repr_str
+        return self.__class__.__name__
 
 
 def test_compose():
@@ -305,10 +304,6 @@ def test_key_mapper():
         mapping=dict(value='v_in'),
         remapping=dict(value='v_out'))
 
-    # __iter__
-    for _ in pipeline:
-        pass
-
     # __repr__
     assert repr(pipeline) == (
         'KeyMapper(transforms = Compose(\n    ' + 'AddToValueaddend = 1' +
@@ -487,10 +482,6 @@ def test_random_apply():
     # check share_random_params=True works so that all values are same
     values = results['values']
     assert all(map(lambda x: x == values[0], values))
-
-    # __iter__
-    for _ in pipeline:
-        pass
 
     # repr
     assert repr(pipeline) == (

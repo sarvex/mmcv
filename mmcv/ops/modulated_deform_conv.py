@@ -132,9 +132,9 @@ class ModulatedDeformConv2dFunction(Function):
         bias = bias.type_as(input)  # type: ignore
         mask = mask.type_as(input)
         if ctx.device == 'npu':
-            output = ModulatedDeformConv2dFunction._npu_forward(
-                ctx, input, offset, mask, weight, bias)
-            return output
+            return ModulatedDeformConv2dFunction._npu_forward(
+                ctx, input, offset, mask, weight, bias
+            )
         ctx.save_for_backward(input, offset, mask, weight, bias)
         output = input.new_empty([
             int(i) for i in ModulatedDeformConv2dFunction._output_size(
@@ -336,12 +336,17 @@ class ModulatedDeformConv2dPack(ModulatedDeformConv2d):
             # the key is different in early versions
             # In version < 2, ModulatedDeformConvPack
             # loads previous benchmark models.
-            if (prefix + 'conv_offset.weight' not in state_dict
-                    and prefix[:-1] + '_offset.weight' in state_dict):
-                state_dict[prefix + 'conv_offset.weight'] = state_dict.pop(
-                    prefix[:-1] + '_offset.weight')
-            if (prefix + 'conv_offset.bias' not in state_dict
-                    and prefix[:-1] + '_offset.bias' in state_dict):
+            if (
+                f'{prefix}conv_offset.weight' not in state_dict
+                and f'{prefix[:-1]}_offset.weight' in state_dict
+            ):
+                state_dict[f'{prefix}conv_offset.weight'] = state_dict.pop(
+                    f'{prefix[:-1]}_offset.weight'
+                )
+            if (
+                f'{prefix}conv_offset.bias' not in state_dict
+                and f'{prefix[:-1]}_offset.bias' in state_dict
+            ):
                 state_dict[prefix +
                            'conv_offset.bias'] = state_dict.pop(prefix[:-1] +
                                                                 '_offset.bias')

@@ -47,10 +47,7 @@ class AlexNet(nn.Module):
         if isinstance(pretrained, str):
             logger = logging.getLogger()
             load_checkpoint(self, pretrained, strict=False, logger=logger)
-        elif pretrained is None:
-            # use default initializer
-            pass
-        else:
+        elif pretrained is not None:
             raise TypeError('pretrained must be a str or None')
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

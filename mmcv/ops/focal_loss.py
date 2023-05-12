@@ -35,10 +35,10 @@ class SigmoidFocalLossFunction(Function):
             assert weight.dim() == 1
             assert input.size(1) == weight.size(0)
         ctx.reduction_dict = {'none': 0, 'mean': 1, 'sum': 2}
-        assert reduction in ctx.reduction_dict.keys()
+        assert reduction in ctx.reduction_dict
 
-        ctx.gamma = float(gamma)
-        ctx.alpha = float(alpha)
+        ctx.gamma = gamma
+        ctx.alpha = alpha
         ctx.reduction = ctx.reduction_dict[reduction]
 
         output = input.new_zeros(input.size())
@@ -126,10 +126,10 @@ class SoftmaxFocalLossFunction(Function):
             assert weight.dim() == 1
             assert input.size(1) == weight.size(0)
         ctx.reduction_dict = {'none': 0, 'mean': 1, 'sum': 2}
-        assert reduction in ctx.reduction_dict.keys()
+        assert reduction in ctx.reduction_dict
 
-        ctx.gamma = float(gamma)
-        ctx.alpha = float(alpha)
+        ctx.gamma = gamma
+        ctx.alpha = alpha
         ctx.reduction = ctx.reduction_dict[reduction]
 
         channel_stats, _ = torch.max(input, dim=1)

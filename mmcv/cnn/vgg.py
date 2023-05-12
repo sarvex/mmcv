@@ -152,10 +152,7 @@ class VGG(nn.Module):
             x = x.view(x.size(0), -1)
             x = self.classifier(x)
             outs.append(x)
-        if len(outs) == 1:
-            return outs[0]
-        else:
-            return tuple(outs)
+        return outs[0] if len(outs) == 1 else tuple(outs)
 
     def train(self, mode: bool = True) -> None:
         super().train(mode)

@@ -110,15 +110,14 @@ class SAConv2d(ConvAWS2d):
             offset = self.offset_s(avg_x)
             out_s = deform_conv2d(x, offset, weight, self.stride, self.padding,
                                   self.dilation, self.groups, 1)
-        else:
-            if (TORCH_VERSION == 'parrots'
+        elif (TORCH_VERSION == 'parrots'
                     or digit_version(TORCH_VERSION) < digit_version('1.5.0')):
-                out_s = super().conv2d_forward(x, weight)
-            elif digit_version(TORCH_VERSION) >= digit_version('1.8.0'):
-                # bias is a required argument of _conv_forward in torch 1.8.0
-                out_s = super()._conv_forward(x, weight, zero_bias)
-            else:
-                out_s = super()._conv_forward(x, weight)
+            out_s = super().conv2d_forward(x, weight)
+        elif digit_version(TORCH_VERSION) >= digit_version('1.8.0'):
+            # bias is a required argument of _conv_forward in torch 1.8.0
+            out_s = super()._conv_forward(x, weight, zero_bias)
+        else:
+            out_s = super()._conv_forward(x, weight)
         ori_p = self.padding
         ori_d = self.dilation
         self.padding = tuple(3 * p for p in self.padding)
@@ -128,15 +127,14 @@ class SAConv2d(ConvAWS2d):
             offset = self.offset_l(avg_x)
             out_l = deform_conv2d(x, offset, weight, self.stride, self.padding,
                                   self.dilation, self.groups, 1)
-        else:
-            if (TORCH_VERSION == 'parrots'
+        elif (TORCH_VERSION == 'parrots'
                     or digit_version(TORCH_VERSION) < digit_version('1.5.0')):
-                out_l = super().conv2d_forward(x, weight)
-            elif digit_version(TORCH_VERSION) >= digit_version('1.8.0'):
-                # bias is a required argument of _conv_forward in torch 1.8.0
-                out_l = super()._conv_forward(x, weight, zero_bias)
-            else:
-                out_l = super()._conv_forward(x, weight)
+            out_l = super().conv2d_forward(x, weight)
+        elif digit_version(TORCH_VERSION) >= digit_version('1.8.0'):
+            # bias is a required argument of _conv_forward in torch 1.8.0
+            out_l = super()._conv_forward(x, weight, zero_bias)
+        else:
+            out_l = super()._conv_forward(x, weight)
 
         out = switch * out_s + (1 - switch) * out_l
         self.padding = ori_p

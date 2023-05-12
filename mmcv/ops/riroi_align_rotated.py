@@ -126,9 +126,9 @@ class RiRoIAlignRotated(nn.Module):
         super().__init__()
 
         self.out_size = out_size
-        self.spatial_scale = float(spatial_scale)
-        self.num_samples = int(num_samples)
-        self.num_orientations = int(num_orientations)
+        self.spatial_scale = spatial_scale
+        self.num_samples = num_samples
+        self.num_orientations = num_orientations
         self.clockwise = clockwise
 
     def forward(self, features: torch.Tensor,

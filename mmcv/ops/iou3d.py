@@ -62,8 +62,7 @@ def boxes_iou3d(boxes_a: Tensor, boxes_b: Tensor) -> Tensor:
     overlaps_3d = overlaps_bev * overlaps_h
     vol_a = (boxes_a[:, 3] * boxes_a[:, 4] * boxes_a[:, 5]).view(-1, 1)
     vol_b = (boxes_b[:, 3] * boxes_b[:, 4] * boxes_b[:, 5]).view(1, -1)
-    iou3d = overlaps_3d / torch.clamp(vol_a + vol_b - overlaps_3d, min=1e-6)
-    return iou3d
+    return overlaps_3d / torch.clamp(vol_a + vol_b - overlaps_3d, min=1e-6)
 
 
 def nms3d(boxes: Tensor, scores: Tensor, iou_threshold: float) -> Tensor:

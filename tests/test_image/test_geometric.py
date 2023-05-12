@@ -302,7 +302,7 @@ class TestGeometric:
         patches = mmcv.imcrop(self.img, bboxes[[0], :])
         assert patch.shape == (100, 100, 3)
         patch_path = osp.join(self.data_dir, 'patches')
-        ref_patch = np.load(patch_path + '/0.npy')
+        ref_patch = np.load(f'{patch_path}/0.npy')
         assert_array_equal(patch, ref_patch)
         assert isinstance(patches, list) and len(patches) == 1
         assert_array_equal(patches[0], ref_patch)
@@ -311,23 +311,23 @@ class TestGeometric:
         patches = mmcv.imcrop(self.img, bboxes)
         assert len(patches) == bboxes.shape[0]
         for i in range(len(patches)):
-            ref_patch = np.load(patch_path + f'/{i}.npy')
+            ref_patch = np.load(f'{patch_path}/{i}.npy')
             assert_array_equal(patches[i], ref_patch)
 
         # crop with scaling and no padding
         patches = mmcv.imcrop(self.img, bboxes, 1.2)
         for i in range(len(patches)):
-            ref_patch = np.load(patch_path + f'/scale_{i}.npy')
+            ref_patch = np.load(f'{patch_path}/scale_{i}.npy')
             assert_array_equal(patches[i], ref_patch)
 
         # crop with scaling and padding
         patches = mmcv.imcrop(self.img, bboxes, 1.2, pad_fill=[255, 255, 0])
         for i in range(len(patches)):
-            ref_patch = np.load(patch_path + f'/pad_{i}.npy')
+            ref_patch = np.load(f'{patch_path}/pad_{i}.npy')
             assert_array_equal(patches[i], ref_patch)
         patches = mmcv.imcrop(self.img, bboxes, 1.2, pad_fill=0)
         for i in range(len(patches)):
-            ref_patch = np.load(patch_path + f'/pad0_{i}.npy')
+            ref_patch = np.load(f'{patch_path}/pad0_{i}.npy')
             assert_array_equal(patches[i], ref_patch)
 
     def test_impad(self):

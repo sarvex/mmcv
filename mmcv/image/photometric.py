@@ -143,7 +143,7 @@ def adjust_color(img, alpha=1, beta=None, gamma=0, backend=None):
         if beta is None:
             beta = 1 - alpha
         colored_img = cv2.addWeighted(img, alpha, gray_img, beta, gamma)
-        if not colored_img.dtype == np.uint8:
+        if colored_img.dtype != np.uint8:
             # Note when the dtype of `img` is not the default `np.uint8`
             # (e.g. np.float32), the value in `colored_img` got from cv2
             # is not guaranteed to be in range [0, 255], so here clip
@@ -434,8 +434,7 @@ def adjust_lighting(img, eigval, eigvec, alphastd=0.1, to_rgb=True):
         * np.broadcast_to(alpha.reshape(1, n_eigval), (3, n_eigval)) \
         * np.broadcast_to(eigval.reshape(1, n_eigval), (3, n_eigval))
     alter = np.broadcast_to(alter.sum(axis=1).reshape(1, 1, 3), img.shape)
-    img_adjusted = img + alter
-    return img_adjusted
+    return img + alter
 
 
 def lut_transform(img, lut_table):
@@ -455,7 +454,7 @@ def lut_transform(img, lut_table):
         ndarray: The transformed image.
     """
     assert isinstance(img, np.ndarray)
-    assert 0 <= np.min(img) and np.max(img) <= 255
+    assert np.min(img) >= 0 and np.max(img) <= 255
     assert isinstance(lut_table, np.ndarray)
     assert lut_table.shape == (256, )
 

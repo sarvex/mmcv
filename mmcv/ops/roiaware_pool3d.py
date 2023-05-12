@@ -35,7 +35,7 @@ class RoIAwarePool3d(nn.Module):
 
         self.out_size = out_size
         self.max_pts_per_voxel = max_pts_per_voxel
-        assert mode in ['max', 'avg']
+        assert mode in {'max', 'avg'}
         pool_mapping = {'max': 0, 'avg': 1}
         self.mode = pool_mapping[mode]
 

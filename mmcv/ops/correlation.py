@@ -111,8 +111,7 @@ class CorrelationFunction(Function):
         oH = int((iH + 2 * padH - dilatedKH) / dH + 1)
         oW = int((iW + 2 * padW - dilatedKW) / dW + 1)
 
-        output_size = (batch_size, patch_size, patch_size, oH, oW)
-        return output_size
+        return batch_size, patch_size, patch_size, oH, oW
 
 
 class Correlation(nn.Module):

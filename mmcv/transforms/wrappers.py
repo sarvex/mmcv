@@ -92,7 +92,7 @@ class Compose(BaseTransform):
 
     def __repr__(self):
         """Compute the string representation."""
-        format_string = self.__class__.__name__ + '('
+        format_string = f'{self.__class__.__name__}('
         for t in self.transforms:
             format_string += f'\n    {t}'
         format_string += '\n)'
@@ -243,10 +243,7 @@ class KeyMapper(BaseTransform):
                 return IgnoreKey
 
             # m is an outer_key
-            if self.allow_nonexist_keys:
-                return data.get(m, IgnoreKey)
-            else:
-                return data.get(m)
+            return data.get(m, IgnoreKey) if self.allow_nonexist_keys else data.get(m)
 
         collected = _map(data, mapping)
 
@@ -298,10 +295,7 @@ class KeyMapper(BaseTransform):
             # key is missing in the inputs. In this case, if the inner key is
             # created by the wrapped transforms, it will be remapped to the
             # corresponding outer key during remapping.
-            if m is ... or data is IgnoreKey:
-                return {}
-
-            return {m: data}
+            return {} if m is ... or data is IgnoreKey else {m: data}
 
         # Note that unmapped items are not retained, which is different from
         # the behavior in _map_input. This is to avoid original data items
@@ -466,11 +460,7 @@ class TransformBroadcaster(KeyMapper):
         seq_len = 0
         key_rep = None
 
-        if self.mapping:
-            keys = self.mapping.keys()
-        else:
-            keys = data.keys()
-
+        keys = self.mapping.keys() if self.mapping else data.keys()
         for key in keys:
             assert isinstance(data[key], Sequence)
             if seq_len:
@@ -502,15 +492,7 @@ class TransformBroadcaster(KeyMapper):
         input_scatters = self.scatter_sequence(inputs)
 
         # Control random parameter sharing with a context manager
-        if self.share_random_params:
-            # The context manager :func`:cache_random_params` will let
-            # cacheable method of the transforms cache their outputs. Thus
-            # the random parameters will only generated once and shared
-            # by all data items.
-            ctx = cache_random_params  # type: ignore
-        else:
-            ctx = nullcontext  # type: ignore
-
+        ctx = cache_random_params if self.share_random_params else nullcontext
         with ctx(self.transforms):
             output_scatters = [
                 self._apply_transforms(_input) for _input in input_scatters
@@ -637,10 +619,7 @@ class RandomApply(BaseTransform):
 
     def transform(self, results: Dict) -> Optional[Dict]:
         """Randomly apply the transform."""
-        if self.random_apply():
-            return self.transforms(results)  # type: ignore
-        else:
-            return results
+        return self.transforms(results) if self.random_apply() else results
 
     def __repr__(self) -> str:
         repr_str = self.__class__.__name__
